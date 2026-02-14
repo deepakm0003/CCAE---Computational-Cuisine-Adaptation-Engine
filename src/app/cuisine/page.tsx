@@ -4,18 +4,22 @@ import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
-import { Globe, ChefHat, Star, Clock, Users, TrendingUp, Filter, Search } from 'lucide-react';
+import ccaeApi, { handleApiError } from '@/lib/api';
+import { Globe, ChefHat, Star, Clock, Users, TrendingUp, Filter, Search, AlertCircle } from 'lucide-react';
 
 interface Cuisine {
-  id: string;
   name: string;
-  region: string;
-  description: string;
-  popularDishes: string[];
-  complexity: number;
-  flavorProfile: string[];
-  adaptations: number;
-  avgRating: number;
+  recipe_count: number;
+  ingredient_count: number;
+  top_ingredients: Array<{
+    name: string;
+    frequency: number;
+    centrality: number;
+  }>;
+  molecule_distribution: Record<string, number>;
+  centrality_scores: Record<string, number>;
+  embedding_2d: number[];
+  vector_dimension: number;
 }
 
 export default function CuisinePage() {
@@ -23,7 +27,7 @@ export default function CuisinePage() {
   const router = useRouter();
   const [cuisines, setCuisines] = useState<Cuisine[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedRegion, setSelectedRegion] = useState('all');
+  // const [selectedRegion, setSelectedRegion] = useState('all'); // Removed since not in real data
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -37,81 +41,42 @@ export default function CuisinePage() {
     fetchCuisines();
   }, [user, isLoading, router]);
 
+  const [error, setError] = useState<string | null>(null);
+
   const fetchCuisines = async () => {
     try {
-      // Mock data - replace with real API call
-      const mockCuisines: Cuisine[] = [
-        {
-          id: '1',
-          name: 'Italian',
-          region: 'Europe',
-          description: 'Known for pasta, pizza, and rich flavors using olive oil, tomatoes, and fresh herbs.',
-          popularDishes: ['Margherita Pizza', 'Carbonara', 'Risotto'],
-          complexity: 6,
-          flavorProfile: ['Herbal', 'Rich', 'Savory'],
-          adaptations: 156,
-          avgRating: 4.7
-        },
-        {
-          id: '2',
-          name: 'Japanese',
-          region: 'Asia',
-          description: 'Emphasizes seasonal ingredients, precise preparation, and balanced flavors.',
-          popularDishes: ['Sushi', 'Ramen', 'Tempura'],
-          complexity: 8,
-          flavorProfile: ['Umami', 'Clean', 'Subtle'],
-          adaptations: 142,
-          avgRating: 4.8
-        },
-        {
-          id: '3',
-          name: 'Mexican',
-          region: 'Americas',
-          description: 'Bold flavors with chili peppers, corn, beans, and vibrant spices.',
-          popularDishes: ['Tacos', 'Enchiladas', 'Mole'],
-          complexity: 5,
-          flavorProfile: ['Spicy', 'Bold', 'Earthy'],
-          adaptations: 128,
-          avgRating: 4.6
-        },
-        {
-          id: '4',
-          name: 'Indian',
-          region: 'Asia',
-          description: 'Complex spice blends, regional diversity, and vegetarian traditions.',
-          popularDishes: ['Butter Chicken', 'Biryani', 'Paneer Tikka'],
-          complexity: 9,
-          flavorProfile: ['Spicy', 'Aromatic', 'Complex'],
-          adaptations: 134,
-          avgRating: 4.7
-        },
-        {
-          id: '5',
-          name: 'Thai',
-          region: 'Asia',
-          description: 'Balance of sweet, sour, spicy, salty, and bitter flavors.',
-          popularDishes: ['Pad Thai', 'Tom Yum', 'Green Curry'],
-          complexity: 7,
-          flavorProfile: ['Spicy', 'Sour', 'Sweet'],
-          adaptations: 98,
-          avgRating: 4.5
-        },
-        {
-          id: '6',
-          name: 'French',
-          region: 'Europe',
-          description: 'Techniques-driven cuisine with butter, cream, and wine.',
-          popularDishes: ['Coq au Vin', 'Ratatouille', 'Crème Brûlée'],
-          complexity: 8,
-          flavorProfile: ['Rich', 'Buttery', 'Elegant'],
-          adaptations: 112,
-          avgRating: 4.8
-        }
-      ];
-
-      setCuisines(mockCuisines);
-    } catch (error) {
-      console.error('Failed to fetch cuisines:', error);
+      setLoading(true);
+      setError(null);
+      
+      // Get all cuisines from backend
+      const cuisineList = await ccaeApi.getCuisines();
+      
+      // Get detailed identity for each cuisine
+      const cuisineDetails = await Promise.all(
+        cuisineList.map(async (cuisine: any) => {
+          try {
+            const identity = await ccaeApi.getCuisineIdentity(cuisine.name);
+            return identity;
+          } catch (err) {
+            console.warn(`Failed to get identity for ${cuisine.name}:`, err);
+            return null;
+          }
+        })
+      );
+      
+      // Filter out null results
+      const validCuisines = cuisineDetails.filter(Boolean);
+      
+      if (validCuisines.length === 0) {
+        setError('No cuisine data available. Upload data and compute identities first.');
+      }
+      
+      setCuisines(validCuisines);
+      
+    } catch (err) {
+      console.error('Failed to fetch cuisines:', err);
+      const errorMessage = handleApiError(err);
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -119,21 +84,18 @@ export default function CuisinePage() {
 
   const filteredCuisines = cuisines.filter(cuisine => {
     const matchesSearch = cuisine.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         cuisine.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesRegion = selectedRegion === 'all' || cuisine.region === selectedRegion;
-    return matchesSearch && matchesRegion;
+                         cuisine.name.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesSearch;
   });
 
-  const regions = ['all', 'Europe', 'Asia', 'Americas', 'Africa', 'Middle Eastern'];
-
-  const getComplexityColor = (complexity: number) => {
-    if (complexity <= 3) return 'bg-blue-500';
-    if (complexity <= 6) return 'bg-blue-500';
-    if (complexity <= 8) return 'bg-blue-500';
-    return 'bg-blue-500';
+  const getComplexityColor = (ingredientCount: number) => {
+    if (ingredientCount <= 10) return 'bg-green-500';
+    if (ingredientCount <= 20) return 'bg-yellow-500';
+    if (ingredientCount <= 30) return 'bg-orange-500';
+    return 'bg-red-500';
   };
 
-  if (isLoading) {
+  if (isLoading || loading) {
     return (
       <div className="min-h-screen bg-[#FAFBFC] flex items-center justify-center">
         <div className="text-center">
@@ -146,6 +108,82 @@ export default function CuisinePage() {
 
   if (!user) {
     return null;
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-[#FAFBFC] py-24">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center"
+          >
+            <div className="w-24 h-24 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
+              <AlertCircle className="w-12 h-12 text-red-500" />
+            </div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-4">
+              Unable to Load Cuisines
+            </h1>
+            <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+              {error}
+            </p>
+            <div className="flex gap-4 justify-center">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={fetchCuisines}
+                className="bg-blue-600 text-white px-8 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+              >
+                Retry
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => router.push('/data-upload')}
+                className="bg-gray-600 text-white px-8 py-3 rounded-lg font-medium hover:bg-gray-700 transition-colors"
+              >
+                Upload Data
+              </motion.button>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+    );
+  }
+
+  // Empty state
+  if (cuisines.length === 0) {
+    return (
+      <div className="min-h-screen bg-[#FAFBFC] py-24">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center"
+          >
+            <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Globe className="w-12 h-12 text-gray-400" />
+            </div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-4">
+              No Cuisines Available
+            </h1>
+            <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+              Upload recipe data first to explore cuisines and their flavor profiles.
+            </p>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => router.push('/data-upload')}
+              className="bg-blue-600 text-white px-8 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+            >
+              Upload Recipe Data
+            </motion.button>
+          </motion.div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -186,20 +224,7 @@ export default function CuisinePage() {
               </div>
             </div>
             
-            <div className="flex items-center gap-2">
-              <Filter className="w-5 h-5 text-gray-400" />
-              <select
-                value={selectedRegion}
-                onChange={(e) => setSelectedRegion(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                {regions.map(region => (
-                  <option key={region} value={region}>
-                    {region === 'all' ? 'All Regions' : region}
-                  </option>
-                ))}
-              </select>
-            </div>
+            {/* Region filter removed - not available in real data */}
           </div>
         </motion.div>
 
@@ -212,7 +237,7 @@ export default function CuisinePage() {
         >
           {filteredCuisines.map((cuisine, index) => (
             <motion.div
-              key={cuisine.id}
+              key={cuisine.name}
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6 + index * 0.1 }}
@@ -221,71 +246,78 @@ export default function CuisinePage() {
               <div className="flex items-start justify-between mb-4">
                 <div>
                   <h3 className="text-xl font-bold text-gray-900 mb-1">{cuisine.name}</h3>
-                  <p className="text-sm text-gray-500">{cuisine.region}</p>
+                  <p className="text-sm text-gray-500">Cuisine Identity</p>
                 </div>
                 <Globe className="w-6 h-6 text-blue-600" />
               </div>
 
-              <p className="text-gray-600 mb-4 line-clamp-2">
-                {cuisine.description}
-              </p>
-
               <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="text-gray-600">Recipes</span>
+                    <p className="font-medium text-gray-900">{cuisine.recipe_count}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Ingredients</span>
+                    <p className="font-medium text-gray-900">{cuisine.ingredient_count}</p>
+                  </div>
+                </div>
+
                 <div>
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-sm text-gray-600">Complexity</span>
-                    <span className="text-sm font-medium text-gray-900">{cuisine.complexity}/10</span>
+                    <span className="text-sm font-medium text-gray-900">
+                      {getComplexityColor(cuisine.ingredient_count).includes('green') ? 'Simple' : 
+                       getComplexityColor(cuisine.ingredient_count).includes('yellow') ? 'Moderate' :
+                       getComplexityColor(cuisine.ingredient_count).includes('orange') ? 'Complex' : 'Very Complex'}
+                    </span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
                     <div
-                      className={`h-2 rounded-full ${getComplexityColor(cuisine.complexity)}`}
-                      style={{ width: `${(cuisine.complexity / 10) * 100}%` }}
+                      className={`h-2 rounded-full ${getComplexityColor(cuisine.ingredient_count)}`}
+                      style={{ width: `${Math.min((cuisine.ingredient_count / 50) * 100, 100)}%` }}
                     ></div>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-1">
-                    <Star className="w-4 h-4 text-blue-500" />
-                    <span className="font-medium text-gray-900">{cuisine.avgRating}</span>
+                <div>
+                  <p className="text-sm text-gray-600 mb-2">Top Ingredients</p>
+                  <div className="flex flex-wrap gap-1">
+                    {cuisine.top_ingredients.slice(0, 3).map((ingredient: any, i: number) => (
+                      <span
+                        key={i}
+                        className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full"
+                      >
+                        {ingredient.name}
+                      </span>
+                    ))}
                   </div>
-                  <div className="flex items-center gap-1">
-                    <TrendingUp className="w-4 h-4 text-blue-600" />
-                    <span className="text-gray-600">{cuisine.adaptations} adaptations</span>
-                  </div>
+                </div>
+
+                <div>
+                  <p className="text-sm text-gray-600 mb-2">Molecules</p>
+                  <p className="text-xs text-gray-500">
+                    {Object.keys(cuisine.molecule_distribution).length} unique compounds
+                  </p>
+                </div>
+
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">Vector Dimension</p>
+                  <p className="text-xs text-gray-500">{cuisine.vector_dimension}D</p>
                 </div>
               </div>
-
-              <div className="mt-4 pt-4 border-t border-gray-100">
-                <p className="text-sm font-medium text-gray-900 mb-2">Popular Dishes:</p>
-                <div className="flex flex-wrap gap-1">
-                  {cuisine.popularDishes.slice(0, 3).map((dish, i) => (
-                    <span key={i} className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
-                      {dish}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              <div className="mt-4 pt-4 border-t border-gray-100">
-                <p className="text-sm font-medium text-gray-900 mb-2">Flavor Profile:</p>
-                <div className="flex flex-wrap gap-1">
-                  {cuisine.flavorProfile.map((flavor, i) => (
-                    <span key={i} className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs">
-                      {flavor}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              <button
-                onClick={() => router.push(`/flavor-map?cuisine=${cuisine.name}`)}
-                className="w-full mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                Explore Cuisine
-              </button>
             </motion.div>
           ))}
+          {filteredCuisines.length === 0 && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-center py-12"
+            >
+              <Globe className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-600">No cuisines found matching your criteria.</p>
+            </motion.div>
+          )}
         </motion.div>
 
         {filteredCuisines.length === 0 && (

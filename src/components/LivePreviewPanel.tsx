@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { Eye, Activity, TrendingUp, AlertTriangle, RefreshCw } from 'lucide-react';
-import { previewCompatibility, CompatibilityPreviewResponse } from '@/lib/api';
+import ccaeApi, { handleApiError } from '@/lib/api';
 
 interface PreviewData {
   identity_score: number;
@@ -32,27 +32,27 @@ const LivePreviewPanel = () => {
       // Get selected recipe and target cuisine from localStorage
       const selectedRecipeId = localStorage.getItem('selectedRecipe');
       const targetCuisine = localStorage.getItem('targetCuisine');
+      const sourceCuisine = localStorage.getItem('sourceCuisine');
       
       if (!selectedRecipeId || !targetCuisine) {
         setError('Please select a recipe and target cuisine first');
         return;
       }
       
-      // Call real API for preview
-      const response: CompatibilityPreviewResponse = await previewCompatibility({
-        recipe_id: parseInt(selectedRecipeId),
-        source_cuisine: '', // Will be determined by backend
-        target_cuisine: targetCuisine
-      });
+      // Call real API for compatibility preview
+      const response = await ccaeApi.getCompatibilityPreview(
+        sourceCuisine || 'unknown',
+        targetCuisine
+      );
       
       // Transform API response to component format
       const transformedData: PreviewData = {
-        identity_score: response.mathematical_scores.identity_score || 0,
-        compatibility_score: response.mathematical_scores.compatibility_score || 0,
-        adaptation_distance: 1 - response.mathematical_scores.compatibility_ratio || 0, // Transform compatibility ratio
-        flavor_coherence: response.mathematical_scores.cuisine_similarity || 0,
-        estimated_is_drop: Math.max(0, 100 - response.mathematical_scores.identity_score) || 0, // Calculate from identity score
-        estimated_cs_increase: Math.max(0, response.mathematical_scores.compatibility_score - 50) || 0 // Calculate from compatibility score
+        identity_score: response.identity_score || 0,
+        compatibility_score: response.compatibility_score || 0,
+        adaptation_distance: response.adaptation_distance || 0,
+        flavor_coherence: response.flavor_coherence || 0,
+        estimated_is_drop: Math.max(0, 100 - (response.identity_score || 0)) || 0,
+        estimated_cs_increase: Math.max(0, (response.compatibility_score || 0) - 50) || 0
       };
       
       setPreviewData(transformedData);
@@ -62,7 +62,8 @@ const LivePreviewPanel = () => {
       localStorage.setItem('previewData', JSON.stringify(transformedData));
     } catch (err) {
       console.error('Failed to fetch preview data:', err);
-      setError(err instanceof Error ? err.message : 'Failed to load preview data');
+      const errorMessage = handleApiError(err);
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

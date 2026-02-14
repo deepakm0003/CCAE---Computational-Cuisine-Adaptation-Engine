@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { Globe, AlertTriangle, RefreshCw } from 'lucide-react';
-import { getCuisines } from '@/lib/api';
+import ccaeApi, { handleApiError } from '@/lib/api';
 
 interface Cuisine {
   name: string;
@@ -25,16 +25,17 @@ const CuisineSelector = ({ onPreview }: CuisineSelectorProps) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await getCuisines();
+      const response = await ccaeApi.getCuisines();
       
-      if (response.cuisines && response.cuisines.length > 0) {
-        setCuisines(response.cuisines);
+      if (response && response.length > 0) {
+        setCuisines(response);
       } else {
         setError('No cuisines found. Upload data and compute identities first.');
       }
     } catch (err) {
       console.error('Failed to fetch cuisines:', err);
-      setError('Failed to load cuisines. Please try again.');
+      const errorMessage = handleApiError(err);
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

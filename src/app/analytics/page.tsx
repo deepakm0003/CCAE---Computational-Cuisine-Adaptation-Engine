@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { BarChart3, TrendingUp, TrendingDown, Activity, Brain, FileText, Download, Filter, Calendar, Eye, Zap, Target } from 'lucide-react';
+import ccaeApi, { handleApiError } from '@/lib/api';
 
 interface AnalyticsData {
   totalAdaptations: number;
@@ -34,6 +35,8 @@ export default function AnalyticsPage() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
   const [selectedPeriod, setSelectedPeriod] = useState('7d');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData>({
     totalAdaptations: 0,
     successRate: 0,
@@ -73,21 +76,44 @@ export default function AnalyticsPage() {
 
   const fetchAnalyticsData = async () => {
     try {
-      // Simulate data updates
+      setLoading(true);
+      setError(null);
+      
+      // Get real data from backend
+      const [healthData, adaptations] = await Promise.all([
+        ccaeApi.getHealth(),
+        ccaeApi.getAdaptations({ limit: 1000 })
+      ]);
+      
+      // Calculate real analytics
+      const totalAdaptations = adaptations.length;
+      const successfulAdaptations = adaptations.filter((a: any) => 
+        a.scores.multi_objective_score > 0.5
+      ).length;
+      const successRate = totalAdaptations > 0 ? (successfulAdaptations / totalAdaptations) * 100 : 0;
+      const avgConfidence = adaptations.length > 0 
+        ? adaptations.reduce((sum: number, a: any) => sum + a.scores.multi_objective_score, 0) / adaptations.length * 100
+        : 0;
+      
       setAnalyticsData({
-        totalAdaptations: Math.floor(Math.random() * 500) + 1200,
-        successRate: Math.floor(Math.random() * 10) + 85,
-        avgConfidence: Math.floor(Math.random() * 8) + 87,
-        researchPapers: Math.floor(Math.random() * 5) + 12,
-        dataPoints: Math.floor(Math.random() * 1000) + 4500,
-        activeStudies: Math.floor(Math.random() * 3) + 4
+        totalAdaptations,
+        successRate: Math.round(successRate),
+        avgConfidence: Math.round(avgConfidence),
+        researchPapers: 0, // Not tracked in MVP
+        dataPoints: healthData.stats.recipes + healthData.stats.ingredients,
+        activeStudies: 0 // Not tracked in MVP
       });
+      
     } catch (err) {
       console.error('Failed to fetch analytics data:', err);
+      const errorMessage = handleApiError(err);
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
     }
   };
 
-  if (isLoading) {
+  if (isLoading || loading) {
     return (
       <div className="min-h-screen bg-[#FAFBFC] flex items-center justify-center">
         <div className="text-center">

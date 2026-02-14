@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
-import { getScores, getHealth } from '@/lib/api';
+import ccaeApi, { handleApiError } from '@/lib/api';
 import { Activity, Zap, Clock, CheckCircle, AlertTriangle, TrendingUp, BarChart3, RefreshCw } from 'lucide-react';
 
 interface MetricData {
@@ -16,12 +16,13 @@ interface MetricData {
 }
 
 interface HealthData {
-  api_status: 'healthy' | 'warning' | 'error';
-  inference_load: number;
-  latency: number;
-  model_stability: number;
-  uptime: number;
-  timestamp: string;
+  status: string;
+  database: string;
+  stats: {
+    cuisines: number;
+    recipes: number;
+    ingredients: number;
+  };
 }
 
 export default function MetricsPage() {
@@ -46,55 +47,72 @@ export default function MetricsPage() {
   const fetchMetrics = async () => {
     try {
       setLoading(true);
-      const [scoresResponse, healthResponse] = await Promise.all([
-        getScores(),
-        getHealth()
+      setError(null);
+      
+      // Get health data and adaptations from MVP backend
+      const [healthResponse, adaptations] = await Promise.all([
+        ccaeApi.getHealth(),
+        ccaeApi.getAdaptations({ limit: 1000 })
       ]);
 
-      // Transform scores data to metrics format
+      // Calculate metrics from real data
+      const totalAdaptations = adaptations.length;
+      const successfulAdaptations = adaptations.filter((a: any) => 
+        a.scores.multi_objective_score > 0.5
+      ).length;
+      const avgIdentityScore = adaptations.length > 0 
+        ? adaptations.reduce((sum: number, a: any) => sum + a.scores.identity_score, 0) / adaptations.length * 100
+        : 0;
+      const avgCompatibilityScore = adaptations.length > 0 
+        ? adaptations.reduce((sum: number, a: any) => sum + a.scores.compatibility_score, 0) / adaptations.length * 100
+        : 0;
+
+      // Transform data to metrics format
       const transformedMetrics: MetricData[] = [
         {
           metric: 'Average Identity Score',
-          value: scoresResponse.average_identity_score,
+          value: Math.round(avgIdentityScore),
           unit: '%',
-          status: scoresResponse.average_identity_score > 80 ? 'good' : 
-                  scoresResponse.average_identity_score > 60 ? 'warning' : 'critical',
+          status: avgIdentityScore > 80 ? 'good' : 
+                  avgIdentityScore > 60 ? 'warning' : 'critical',
           trend: 'stable'
         },
         {
           metric: 'Average Compatibility Score',
-          value: scoresResponse.average_compatibility_score,
+          value: Math.round(avgCompatibilityScore),
           unit: '%',
-          status: scoresResponse.average_compatibility_score > 80 ? 'good' : 
-                  scoresResponse.average_compatibility_score > 60 ? 'warning' : 'critical',
+          status: avgCompatibilityScore > 80 ? 'good' : 
+                  avgCompatibilityScore > 60 ? 'warning' : 'critical',
           trend: 'up'
         },
         {
           metric: 'Average Adaptation Distance',
-          value: scoresResponse.average_adaptation_distance,
+          value: adaptations.length > 0 
+            ? Math.round(adaptations.reduce((sum: number, a: any) => sum + a.scores.adaptation_distance, 0) / adaptations.length * 100) / 100
+            : 0,
           unit: 'units',
-          status: scoresResponse.average_adaptation_distance < 0.5 ? 'good' : 
-                  scoresResponse.average_adaptation_distance < 0.8 ? 'warning' : 'critical',
+          status: 'good', // Will be calculated based on real values
           trend: 'down'
         },
         {
           metric: 'Average Processing Time',
-          value: scoresResponse.average_processing_time,
+          value: adaptations.length > 0 
+            ? Math.round(adaptations.reduce((sum: number, a: any) => sum + (a.metadata?.processing_time || 0), 0) / adaptations.length)
+            : 0,
           unit: 'ms',
-          status: scoresResponse.average_processing_time < 1000 ? 'good' : 
-                  scoresResponse.average_processing_time < 2000 ? 'warning' : 'critical',
+          status: 'good', // Will be calculated based on real values
           trend: 'stable'
         },
         {
           metric: 'Total Recipes',
-          value: scoresResponse.total_recipes,
+          value: healthResponse.stats.recipes,
           unit: 'recipes',
           status: 'good',
           trend: 'up'
         },
         {
           metric: 'Total Cuisines',
-          value: scoresResponse.total_cuisines,
+          value: healthResponse.stats.cuisines,
           unit: 'cuisines',
           status: 'good',
           trend: 'stable'
@@ -106,7 +124,8 @@ export default function MetricsPage() {
       setError(null);
     } catch (err) {
       console.error('Failed to fetch metrics:', err);
-      setError('Failed to load metrics data');
+      const errorMessage = handleApiError(err);
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -198,35 +217,34 @@ export default function MetricsPage() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               <div className="text-center">
                 <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium mb-2 ${
-                  health.api_status === 'healthy' ? 'bg-blue-100 text-blue-800' :
-                  health.api_status === 'warning' ? 'bg-blue-100 text-blue-800' :
-                  'bg-blue-100 text-blue-800'
+                  health.status === 'healthy' ? 'bg-green-100 text-green-800' :
+                  'bg-yellow-100 text-yellow-800'
                 }`}>
                   <CheckCircle className="w-4 h-4" />
-                  {health.api_status.toUpperCase()}
+                  {health.status.toUpperCase()}
                 </div>
-                <div className="text-sm text-gray-600">API Status</div>
+                <div className="text-sm text-gray-600">System Status</div>
               </div>
 
               <div className="text-center">
                 <div className="text-2xl font-bold text-gray-900 mb-1">
-                  {health.inference_load}%
+                  {health.stats.cuisines}
                 </div>
-                <div className="text-sm text-gray-600">Inference Load</div>
+                <div className="text-sm text-gray-600">Cuisines</div>
               </div>
 
               <div className="text-center">
                 <div className="text-2xl font-bold text-gray-900 mb-1">
-                  {health.latency}ms
+                  {health.stats.recipes}
                 </div>
-                <div className="text-sm text-gray-600">Latency</div>
+                <div className="text-sm text-gray-600">Recipes</div>
               </div>
 
               <div className="text-center">
                 <div className="text-2xl font-bold text-gray-900 mb-1">
-                  {health.uptime}h
+                  {health.stats.ingredients}
                 </div>
-                <div className="text-sm text-gray-600">Uptime</div>
+                <div className="text-sm text-gray-600">Ingredients</div>
               </div>
             </div>
           </motion.div>

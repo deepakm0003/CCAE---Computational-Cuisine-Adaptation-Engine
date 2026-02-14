@@ -1,26 +1,26 @@
 /**
- * Centralized API Layer
- * 
- * All frontend API calls must go through this file.
- * No direct fetch anywhere else.
+ * Centralized API Layer for CCAE Frontend
+ * Connects to MVP Backend with exact mathematical formulas
  */
-import axios, { AxiosInstance, AxiosError } from 'axios';
+
+import axios, { AxiosInstance, AxiosResponse } from 'axios';
 
 // API Configuration
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
 const API_KEY = process.env.NEXT_PUBLIC_API_KEY || '';
+const API_TIMEOUT = 30000; // 30 seconds
 
-// Create axios instance
+// Create Axios instance
 const api: AxiosInstance = axios.create({
-  baseURL: `${API_BASE_URL}/api/v1`,
-  timeout: 30000,
+  baseURL: API_BASE_URL,
+  timeout: API_TIMEOUT,
   headers: {
     'Content-Type': 'application/json',
     ...(API_KEY && { 'X-API-Key': API_KEY }),
   },
 });
 
-// Request interceptor for logging in development
+// Request interceptor
 api.interceptors.request.use(
   (config) => {
     if (process.env.NODE_ENV === 'development') {
@@ -29,12 +29,11 @@ api.interceptors.request.use(
     return config;
   },
   (error) => {
-    console.error('❌ API Request Error:', error);
     return Promise.reject(error);
   }
 );
 
-// Response interceptor for error handling
+// Response interceptor
 api.interceptors.response.use(
   (response) => {
     if (process.env.NODE_ENV === 'development') {
@@ -42,396 +41,196 @@ api.interceptors.response.use(
     }
     return response;
   },
-  (error: AxiosError) => {
-    console.error('❌ API Response Error:', error.response?.data || error.message);
-    
-    // Handle common errors
-    if (error.response?.status === 401) {
-      // Unauthorized - redirect to login
-      window.location.href = '/login';
-    } else if (error.response?.status === 403) {
-      // Forbidden
-      console.error('Access forbidden');
-    } else if (error.response?.status >= 500) {
-      // Server error
-      console.error('Server error occurred');
+  (error) => {
+    if (process.env.NODE_ENV === 'development') {
+      console.error(`❌ API Error: ${error.response?.status} ${error.config?.url}`, error.response?.data);
     }
-    
     return Promise.reject(error);
   }
 );
 
-// API Types
-export interface StatsResponse {
-  total_cuisines: number;
-  total_recipes: number;
-  total_ingredients: number;
-  total_molecules: number;
-  last_recompute: string;
-}
-
-export interface FlavorMapResponse {
-  matrix: number[][];
-  metadata: {
-    cuisines: string[];
-    total_cuisines: number;
-    matrix_size: string;
-    computation_time: number;
-    similarity_metric: string;
-  };
-  analysis: {
-    statistics: {
-      mean_similarity: number;
-      median_similarity: number;
-      std_similarity: number;
-      min_similarity: number;
-      max_similarity: number;
-    };
-    most_similar_pairs: Array<{
-      cuisine_1: string;
-      cuisine_2: string;
-      similarity: number;
-    }>;
-  };
-  heatmap_data: {
-    x_labels: string[];
-    y_labels: string[];
-    z_values: number[][];
-    color_scale: {
-      min: number;
-      max: number;
-      midpoint: number;
-    };
-  };
-}
-
-export interface CuisineIdentityResponse {
-  cuisine_name: string;
-  embedding_2d: number[];
-  ingredient_frequencies: Record<string, number>;
-  molecular_distribution: Record<string, number>;
-  centrality_scores: Record<string, number>;
-  identity_score: number;
+// Types for API responses
+export interface HealthResponse {
+  status: string;
+  database: string;
   stats: {
-    ingredient_count: number;
-    molecule_count: number;
-    centrality_nodes: number;
-    tf_entropy: number;
-    molecular_entropy: number;
-    centrality_mean: number;
-    centrality_std: number;
+    cuisines: number;
+    recipes: number;
+    ingredients: number;
   };
-  computation_time: number;
+}
+
+export interface Cuisine {
+  name: string;
 }
 
 export interface Recipe {
   id: number;
   name: string;
-  cuisine_name: string;
-  ingredient_count: number;
+  cuisine: string;
+  ingredients: string[];
+  instruction_count: number;
 }
 
-export interface CuisineOption {
+export interface RecipeDetail {
+  id: number;
+  name: string;
+  cuisine: string;
+  instructions: string;
+  ingredients: Array<{ name: string; quantity: string }>;
+  created_at?: string;
+}
+
+export interface CuisineIdentity {
   name: string;
   recipe_count: number;
-}
-
-export interface CompatibilityPreviewRequest {
-  recipe_id: number;
-  source_cuisine: string;
-  target_cuisine: string;
-}
-
-export interface CompatibilityPreviewResponse {
-  recipe_id: number;
-  source_cuisine: string;
-  target_cuisine: string;
-  mathematical_scores: {
-    identity_score: number;
-    compatibility_score: number;
-    cuisine_similarity: number;
-    compatibility_ratio: number;
-  };
-  ingredient_analysis: {
-    recipe_ingredients: number;
-    source_overlap_count: number;
-    target_overlap_count: number;
-    source_overlap_ratio: number;
-    target_overlap_ratio: number;
-    overlap_ratio: number;
-    shared_ingredients: string[];
-    recipe_unique_ingredients: string[];
-    target_unique_ingredients: string[];
-  };
-  compatibility_level: string;
-  recommendation: string;
-  validation: {
-    scores_valid: boolean;
-    mathematical_soundness: boolean;
-  };
-}
-
-export interface ImpactPreviewRequest {
-  recipe_id: number;
-  source_cuisine: string;
-  target_cuisine: string;
-  intensity: number;
-}
-
-export interface ImpactPreviewResponse {
-  recipe_id: number;
-  source_cuisine: string;
-  target_cuisine: string;
-  intensity: number;
-  impact_metrics: {
-    base_impact: number;
-    intensity_adjusted_impact: number;
-    impact_level: string;
-    estimated_substitutions: number;
-    total_ingredients: number;
-    substitution_percentage: number;
-  };
-  quality_metrics: {
-    quality_preservation: number;
-    authenticity_retention: number;
-    success_probability: number;
-  };
-  difficulty_assessment: {
-    difficulty: string;
-    complexity_factors: string[];
-  };
-  recommendations: string[];
-  validation: {
-    intensity_valid: boolean;
-    metrics_valid: boolean;
-  };
-}
-
-export interface RiskPreviewRequest {
-  recipe_id: number;
-  source_cuisine: string;
-  target_cuisine: string;
-  intensity: number;
-}
-
-export interface RiskPreviewResponse {
-  recipe_id: number;
-  source_cuisine: string;
-  target_cuisine: string;
-  intensity: number;
-  risk_analysis: Array<{
-    ingredient: string;
-    centrality_score: number;
-    centrality_percentile: number;
-    risk_score: number;
-    risk_level: string;
-    substitution_likelihood: string;
-    preservation_priority: string;
+  ingredient_count: number;
+  top_ingredients: Array<{
+    name: string;
+    frequency: number;
+    centrality: number;
   }>;
-  overall_risk: {
-    overall_risk_score: number;
-    overall_risk_level: string;
-    risk_distribution: {
-      high: number;
-      medium: number;
-      low: number;
-    };
-  };
-  risk_summary: {
-    total_ingredients: number;
-    high_risk_count: number;
-    medium_risk_count: number;
-    low_risk_count: number;
-  };
-  recommendations: string[];
-  validation: {
-    centrality_valid: boolean;
-    risk_scores_valid: boolean;
-  };
+  molecule_distribution: Record<string, number>;
+  centrality_scores: Record<string, number>;
+  embedding_2d: number[];
+  vector_dimension: number;
 }
 
 export interface AdaptationRequest {
   recipe_id: number;
   source_cuisine: string;
   target_cuisine: string;
-  replacement_ratio: number;
+  intensity: number;
 }
 
 export interface AdaptationResponse {
+  id: string;
   recipe_id: number;
   source_cuisine: string;
   target_cuisine: string;
-  replacement_ratio: number;
-  identity_score: {
-    original: number;
-    adapted: number;
-    change: number;
+  original_recipe: {
+    name: string;
+    ingredients: string[];
   };
-  compatibility_score: {
-    original: number;
-    adapted: number;
-    improvement: number;
+  adapted_recipe: {
+    name: string;
+    ingredients: string[];
   };
-  adaptation_distance: number;
-  flavor_coherence_score: number;
-  ingredients: {
-    original: string[];
-    adapted: string[];
-    replacements: Array<{
-      original: string;
-      replacement: string;
-      centrality: number;
-      replacement_probability: number;
-    }>;
+  substitutions: Array<{
+    original: string;
+    replacement: string;
+    reason: string;
+  }>;
+  scores: {
+    identity_score: number;
+    compatibility_score: number;
+    adaptation_distance: number;
+    flavor_coherence: number;
+    multi_objective_score: number;
   };
-  vectors: {
-    recipe_vector: number[];
-    source_vector: number[];
-    target_vector: number[];
-    adapted_vector: number[];
+  metadata: {
+    created_at: string;
+    processing_time: number;
   };
-  validation: {
-    score_ranges: {
-      identity_score_valid: boolean;
-      compatibility_score_valid: boolean;
-      adaptation_distance_valid: boolean;
-      flavor_coherence_valid: boolean;
-    };
-    mathematical_properties: {
-      adaptation_distance_reasonable: boolean;
-      flavor_coherence_preserved: boolean;
-      scores_computed: boolean;
-    };
-  };
-}
-
-export interface RecipeScoresResponse {
-  recipe_id: number;
-  recipe_name: string;
-  identity_score: number;
-  compatibility_scores: { [cuisine: string]: number };
-  adaptation_potential: number;
-  last_updated: string;
-}
-
-export interface ScoresResponse {
-  average_identity_score: number;
-  average_compatibility_score: number;
-  average_adaptation_distance: number;
-  average_flavor_coherence: number;
-  average_processing_time: number;
-  total_recipes: number;
-  total_cuisines: number;
-  last_updated: string;
-}
-
-export interface HealthResponse {
-  api_status: 'healthy' | 'warning' | 'error';
-  inference_load: number;
-  latency: number;
-  model_stability: number;
-  uptime: number;
-  timestamp: string;
 }
 
 export interface UploadResponse {
   message: string;
-  summary: {
-    recipes_uploaded: number;
-    ingredients_processed: number;
-    molecules_processed: number;
-  };
-  recompute_triggered: boolean;
+  recipes_uploaded?: number;
+  ingredients_added?: number;
+  cuisines_added?: number;
+  molecules_added?: number;
+  mappings_created?: number;
 }
 
-// API Functions
+export interface TransferabilityResponse {
+  source_cuisines: string[];
+  target_cuisines: string[];
+  matrix: number[][];
+}
 
-// Stats
-export const getStats = async (): Promise<StatsResponse> => {
-  const response = await api.get('/stats');
+// API Functions - MVP Backend
+
+// Health Check
+export const getHealth = async (): Promise<HealthResponse> => {
+  const response = await api.get('/mvp/health');
   return response.data;
 };
 
-// Flavor Map
-export const getFlavorMap = async (forceRefresh = false): Promise<FlavorMapResponse> => {
-  const response = await api.get('/transferability/transferability', {
-    params: { force_refresh: forceRefresh }
-  });
-  return response.data;
-};
-
-// Cuisine Identity
-export const getCuisineIdentity = async (cuisineName: string): Promise<CuisineIdentityResponse> => {
-  const response = await api.get(`/cuisines/${cuisineName}/identity`);
-  return response.data;
-};
-
-export const computeAllIdentities = async (): Promise<any> => {
-  const response = await api.post('/cuisines/compute-all');
+// Cuisines
+export const getCuisines = async (): Promise<Cuisine[]> => {
+  const response = await api.get('/mvp/cuisines');
   return response.data;
 };
 
 // Recipes
 export const getRecipes = async (): Promise<Recipe[]> => {
-  const response = await api.get('/recipes');
+  const response = await api.get('/mvp/recipes');
   return response.data;
 };
 
-// Cuisines
-export const getCuisines = async (): Promise<CuisineOption[]> => {
-  const response = await api.get('/cuisines');
+// Cuisine Identity
+export const getCuisineIdentity = async (cuisineName: string): Promise<CuisineIdentity> => {
+  const response = await api.get(`/mvp/cuisine/${cuisineName}/identity`);
   return response.data;
 };
 
-// Preview APIs
-export const previewCompatibility = async (request: CompatibilityPreviewRequest): Promise<CompatibilityPreviewResponse> => {
-  const response = await api.post('/mvp/preview/compatibility', request);
+// Compute All Identities
+export const computeAllIdentities = async (): Promise<any> => {
+  const response = await api.post('/mvp/cuisine/compute-all');
   return response.data;
 };
 
-export const previewImpact = async (request: ImpactPreviewRequest): Promise<ImpactPreviewResponse> => {
-  const response = await api.post('/mvp/preview/impact', request);
-  return response.data;
-};
-
-export const previewRisk = async (request: RiskPreviewRequest): Promise<RiskPreviewResponse> => {
-  const response = await api.post('/mvp/preview/risk', request);
-  return response.data;
-};
-
-// Adaptation
+// Recipe Adaptation
 export const adaptRecipe = async (request: AdaptationRequest): Promise<AdaptationResponse> => {
   const response = await api.post('/mvp/adapt', request);
   return response.data;
 };
 
+// Get Adaptations
+export const getAdaptations = async (params?: { limit?: number }): Promise<AdaptationResponse[]> => {
+  const response = await api.get('/mvp/adaptations', { params });
+  return response.data;
+};
+
+// Get Adaptation Result
 export const getAdaptationResult = async (adaptationId: string): Promise<AdaptationResponse> => {
-  const response = await api.get(`/adaptations/${adaptationId}`);
+  const response = await api.get(`/mvp/adapt/${adaptationId}`);
   return response.data;
 };
 
-// Recipe Scores
-export const getRecipeScores = async (recipeId: number): Promise<RecipeScoresResponse> => {
-  const response = await api.get(`/recipes/${recipeId}/scores`);
+// Compatibility Preview
+export const getCompatibilityPreview = async (sourceCuisine: string, targetCuisine: string): Promise<any> => {
+  const response = await api.get(`/mvp/preview/compatibility`, {
+    params: { source_cuisine: sourceCuisine, target_cuisine: targetCuisine }
+  });
   return response.data;
 };
 
-export const getScores = async (): Promise<ScoresResponse> => {
-  const response = await api.get('/scores');
+// Impact Preview
+export const getImpactPreview = async (request: { recipe_id: number; source_cuisine: string; target_cuisine: string; intensity: number }): Promise<any> => {
+  const response = await api.post('/mvp/preview/adaptation-impact', request);
   return response.data;
 };
 
-export const getHealth = async (): Promise<HealthResponse> => {
-  const response = await api.get('/health');
+// Risk Preview
+export const getRiskPreview = async (request: { recipe_id: number; target_cuisine: string; intensity: number }): Promise<any> => {
+  const response = await api.post('/mvp/preview/ingredient-risk', request);
   return response.data;
 };
 
-// Data Upload
+// Transferability Matrix
+export const getTransferability = async (): Promise<TransferabilityResponse> => {
+  const response = await api.get('/mvp/transferability');
+  return response.data;
+};
+
+// Upload Recipes
 export const uploadRecipes = async (file: File): Promise<UploadResponse> => {
   const formData = new FormData();
   formData.append('file', file);
   
-  const response = await api.post('/upload/recipes', formData, {
+  const response = await api.post('/mvp/upload/recipes', formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
@@ -439,11 +238,12 @@ export const uploadRecipes = async (file: File): Promise<UploadResponse> => {
   return response.data;
 };
 
+// Upload Molecules
 export const uploadMolecules = async (file: File): Promise<UploadResponse> => {
   const formData = new FormData();
   formData.append('file', file);
   
-  const response = await api.post('/upload/molecules', formData, {
+  const response = await api.post('/mvp/upload/molecules', formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
@@ -451,14 +251,15 @@ export const uploadMolecules = async (file: File): Promise<UploadResponse> => {
   return response.data;
 };
 
+// Recompute All
 export const recomputeAll = async (): Promise<any> => {
-  const response = await api.post('/cuisines/recompute-all');
+  const response = await api.post('/mvp/recompute-all');
   return response.data;
 };
 
-// Health Check
-export const healthCheck = async (): Promise<{ status: string; timestamp: string }> => {
-  const response = await api.get('/health');
+// Get Mathematical Formulas
+export const getFormulas = async (): Promise<any> => {
+  const response = await api.get('/mvp/formulas');
   return response.data;
 };
 
@@ -466,6 +267,8 @@ export const healthCheck = async (): Promise<{ status: string; timestamp: string
 export const handleApiError = (error: any): string => {
   if (error.response?.data?.detail) {
     return error.response.data.detail;
+  } else if (error.response?.data?.message) {
+    return error.response.data.message;
   } else if (error.message) {
     return error.message;
   } else {
@@ -473,4 +276,35 @@ export const handleApiError = (error: any): string => {
   }
 };
 
-export default api;
+// Consolidated API object for easier imports
+const ccaeApi = {
+  // Health
+  getHealth,
+  
+  // Data
+  getCuisines,
+  getRecipes,
+  getCuisineIdentity,
+  computeAllIdentities,
+  
+  // Adaptation
+  adaptRecipe,
+  getAdaptations,
+  getAdaptationResult,
+  
+  // Previews
+  getCompatibilityPreview,
+  getImpactPreview,
+  getRiskPreview,
+  
+  // Analytics
+  getTransferability,
+  getFormulas,
+  
+  // Upload
+  uploadRecipes,
+  uploadMolecules,
+  recomputeAll,
+};
+
+export default ccaeApi;

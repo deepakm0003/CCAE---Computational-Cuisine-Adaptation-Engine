@@ -3,14 +3,15 @@
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { ChefHat, AlertTriangle, CheckCircle, RefreshCw } from 'lucide-react';
-import { getRecipes } from '@/lib/api';
+import ccaeApi, { handleApiError } from '@/lib/api';
 
 interface Recipe {
   id: number;
   name: string;
   cuisine: string;
-  cuisine_name?: string; // API field
-  ingredient_count: number;
+  ingredients: string[];
+  instruction_count: number;
+  ingredient_count?: number; // Optional, calculated from ingredients
   molecular_density?: number;
   identity_strength?: number;
 }
@@ -35,13 +36,14 @@ const RecipeDropdown = ({ onPreview }: RecipeDropdownProps) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await getRecipes();
+      const response = await ccaeApi.getRecipes();
       
       if (response && response.length > 0) {
         // Transform API response to component format
         const transformedRecipes = response.map(recipe => ({
           ...recipe,
-          cuisine: recipe.cuisine_name || 'Unknown'
+          cuisine: recipe.cuisine || 'Unknown',
+          ingredient_count: recipe.ingredients ? recipe.ingredients.length : 0
         }));
         setRecipes(transformedRecipes);
       } else {
@@ -49,7 +51,8 @@ const RecipeDropdown = ({ onPreview }: RecipeDropdownProps) => {
       }
     } catch (err) {
       console.error('Failed to fetch recipes:', err);
-      setError('Failed to load recipes. Please try again.');
+      const errorMessage = handleApiError(err);
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

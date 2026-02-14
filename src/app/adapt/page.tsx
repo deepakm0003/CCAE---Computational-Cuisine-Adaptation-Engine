@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Play, Settings, Eye, AlertTriangle, ChefHat, Globe, Zap, CheckCircle, RefreshCw } from 'lucide-react';
-import { getRecipes, getCuisines, adaptRecipe, previewCompatibility } from '@/lib/api';
+import ccaeApi, { handleApiError } from '@/lib/api';
 import RecipeDropdown from '@/components/RecipeDropdown';
 import CuisineSelector from '@/components/CuisineSelector';
 import IntensitySlider from '@/components/IntensitySlider';
@@ -28,18 +28,20 @@ const AdaptPage = () => {
       // Get selected recipe and target cuisine from localStorage
       const selectedRecipeId = localStorage.getItem('selectedRecipe');
       const targetCuisine = localStorage.getItem('targetCuisine');
+      const sourceCuisine = localStorage.getItem('sourceCuisine');
+      const intensity = parseFloat(localStorage.getItem('intensity') || '0.5');
       
       if (!selectedRecipeId || !targetCuisine) {
         setError('Please select a recipe and target cuisine first');
         return;
       }
       
-      // Call real adaptation API
-      const response = await adaptRecipe({
+      // Call real adaptation API with MVP format
+      const response = await ccaeApi.adaptRecipe({
         recipe_id: parseInt(selectedRecipeId),
-        source_cuisine: '', // Will be determined by backend
+        source_cuisine: sourceCuisine || 'auto', // Backend will determine if not specified
         target_cuisine: targetCuisine,
-        replacement_ratio: 0.3
+        intensity: intensity
       });
       
       // Store result in localStorage for result page
@@ -54,7 +56,8 @@ const AdaptPage = () => {
       
     } catch (err) {
       console.error('Adaptation failed:', err);
-      setError(err instanceof Error ? err.message : 'Failed to adapt recipe. Please try again.');
+      const errorMessage = handleApiError(err);
+      setError(errorMessage);
     } finally {
       setIsProcessing(false);
     }
@@ -64,24 +67,25 @@ const AdaptPage = () => {
     try {
       const selectedRecipe = localStorage.getItem('selectedRecipe');
       const targetCuisine = localStorage.getItem('targetCuisine');
+      const sourceCuisine = localStorage.getItem('sourceCuisine');
       
       if (!selectedRecipe || !targetCuisine) {
         throw new Error('Please select a recipe and target cuisine');
       }
       
-      // Call real preview API
-      const response = await previewCompatibility({
-        recipe_id: parseInt(selectedRecipe),
-        source_cuisine: '', // Will be determined by backend
-        target_cuisine: targetCuisine
-      });
+      // Call real preview API - using compatibility preview for now
+      const response = await ccaeApi.getCompatibilityPreview(
+        sourceCuisine || 'unknown',
+        targetCuisine
+      );
       
       // Store preview data
       localStorage.setItem('previewData', JSON.stringify(response));
       
     } catch (err) {
       console.error('Preview failed:', err);
-      setError(err instanceof Error ? err.message : 'Failed to generate preview');
+      const errorMessage = handleApiError(err);
+      setError(errorMessage);
     }
   };
 

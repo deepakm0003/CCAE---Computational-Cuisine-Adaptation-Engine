@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
-import { getFlavorMap } from '@/lib/api';
+import ccaeApi, { handleApiError } from '@/lib/api';
 import { Brain, Globe, Activity, TrendingUp, RefreshCw } from 'lucide-react';
 import FlavorMapCanvas from '@/components/FlavorMapCanvas';
 import CuisineTooltip from '@/components/CuisineTooltip';
@@ -37,15 +37,70 @@ export default function FlavorMapPage() {
   const fetchFlavorMap = async () => {
     try {
       setLoading(true);
-      const response = await getFlavorMap();
-      setFlavorData(response);
       setError(null);
+      
+      // Get all cuisines first
+      const cuisines = await ccaeApi.getCuisines();
+      
+      // Get identity data for each cuisine
+      const cuisineIdentities = await Promise.all(
+        cuisines.map(async (cuisine: any) => {
+          try {
+            const identity = await ccaeApi.getCuisineIdentity(cuisine.name);
+            return {
+              name: cuisine.name,
+              x: identity.embedding_2d[0] || 0,
+              y: identity.embedding_2d[1] || 0,
+              size: Math.sqrt(identity.ingredient_count) * 10,
+              color: getCuisineColor(cuisine.name),
+              details: {
+                recipe_count: identity.recipe_count,
+                ingredient_count: identity.ingredient_count,
+                top_ingredients: identity.top_ingredients.slice(0, 5),
+                molecule_count: Object.keys(identity.molecule_distribution).length
+              }
+            };
+          } catch (err) {
+            console.warn(`Failed to get identity for ${cuisine.name}:`, err);
+            return null;
+          }
+        })
+      );
+      
+      // Filter out null results and format for canvas
+      const validIdentities = cuisineIdentities.filter(Boolean);
+      
+      if (validIdentities.length === 0) {
+        setError('No cuisine embeddings available. Upload data and compute identities first.');
+        return;
+      }
+      
+      setFlavorData({
+        cuisines: validIdentities,
+        metadata: {
+          total: validIdentities.length,
+          lastUpdated: new Date().toISOString()
+        }
+      });
+      
     } catch (err) {
       console.error('Failed to fetch flavor map:', err);
-      setError('Failed to load flavor map data');
+      const errorMessage = handleApiError(err);
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
+  };
+
+  // Helper function to assign colors to cuisines
+  const getCuisineColor = (cuisineName: string): string => {
+    const colors = [
+      '#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6',
+      '#EC4899', '#14B8A6', '#F97316', '#6366F1', '#84CC16'
+    ];
+    
+    const hash = cuisineName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    return colors[hash % colors.length];
   };
 
   if (isLoading || loading) {
@@ -61,6 +116,39 @@ export default function FlavorMapPage() {
 
   if (!user) {
     return null;
+  }
+
+  // Empty state when no data is available
+  if (error && error.includes('No cuisine embeddings')) {
+    return (
+      <div className="min-h-screen bg-[#FAFBFC] py-24">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center"
+          >
+            <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Globe className="w-12 h-12 text-gray-400" />
+            </div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-4">
+              No Flavor Map Data Available
+            </h1>
+            <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+              Upload recipe and molecule data first, then compute cuisine identities to generate the flavor map.
+            </p>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => router.push('/data-upload')}
+              className="bg-blue-600 text-white px-8 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+            >
+              Upload Data
+            </motion.button>
+          </motion.div>
+        </div>
+      </div>
+    );
   }
 
   return (

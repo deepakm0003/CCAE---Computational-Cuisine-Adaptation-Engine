@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { TrendingUp, AlertTriangle, CheckCircle, Activity, Zap, Shield, Globe, ArrowRight, RefreshCw, AlertCircle } from 'lucide-react';
+import ccaeApi, { handleApiError } from '@/lib/api';
 
 export default function TransferabilityPage() {
   const { user, isLoading } = useAuth();
@@ -28,25 +29,23 @@ export default function TransferabilityPage() {
   const fetchHeatmapData = async () => {
     try {
       setLoading(true);
-      // Mock API call - replace with real API
-      const mockData = {
-        source_cuisines: ['Italian', 'Chinese', 'Indian', 'Mexican', 'Japanese', 'Thai'],
-        target_cuisines: ['Italian', 'Chinese', 'Indian', 'Mexican', 'Japanese', 'Thai'],
-        matrix: [
-          [1.0, 0.7, 0.6, 0.8, 0.5, 0.6],
-          [0.7, 1.0, 0.5, 0.6, 0.7, 0.8],
-          [0.6, 0.5, 1.0, 0.7, 0.4, 0.6],
-          [0.8, 0.6, 0.7, 1.0, 0.5, 0.7],
-          [0.5, 0.7, 0.4, 0.5, 1.0, 0.6],
-          [0.6, 0.8, 0.6, 0.7, 0.6, 1.0]
-        ]
-      };
-      
-      setHeatmapData(mockData);
       setError(null);
+      
+      // Get transferability matrix from backend
+      const transferData = await ccaeApi.getTransferability();
+      
+      // If no transferability data is available, create empty state
+      if (!transferData || !transferData.matrix) {
+        setError('No transferability data available. Upload data and compute identities first.');
+        return;
+      }
+      
+      setHeatmapData(transferData);
+      
     } catch (err) {
       console.error('Failed to fetch heatmap data:', err);
-      setError('Failed to load transferability data');
+      const errorMessage = handleApiError(err);
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

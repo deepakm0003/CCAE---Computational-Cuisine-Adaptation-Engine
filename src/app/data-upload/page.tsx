@@ -9,7 +9,7 @@ import { useDataUploadStore } from '@/store/dataUploadStore';
 import FileUploadCard from '@/components/FileUploadCard';
 import UploadProgress from '@/components/UploadProgress';
 import UploadSummaryCard from '@/components/UploadSummaryCard';
-import { testConnection, searchIngredients, getFlavorMolecules } from '@/lib/foodscopeApi';
+import ccaeApi, { handleApiError } from '@/lib/api';
 
 export default function DataUploadPage() {
   const { user, isLoading } = useAuth();
@@ -35,17 +35,17 @@ export default function DataUploadPage() {
 
   const fetchSystemStats = async () => {
     try {
-      // Mock API call - replace with real API
-      const mockStats = {
-        totalRecipes: 1250,
-        totalMolecules: 850,
-        processedFiles: 45,
+      const healthData = await ccaeApi.getHealth();
+      setSystemStats({
+        totalCuisines: healthData.stats.cuisines,
+        totalRecipes: healthData.stats.recipes,
+        totalIngredients: healthData.stats.ingredients,
         lastUpdate: new Date().toISOString()
-      };
-      setSystemStats(mockStats);
+      });
     } catch (err) {
       console.error('Failed to fetch system stats:', err);
-      setError('Failed to load system statistics');
+      const errorMessage = handleApiError(err);
+      setError(errorMessage);
     }
   };
 
@@ -67,17 +67,35 @@ export default function DataUploadPage() {
 
   const handleTestConnection = async () => {
     setApiLoading(true);
-    const result = await testConnection();
-    setApiStatus(result);
-    setApiLoading(false);
+    try {
+      const result = await ccaeApi.getHealth();
+      setApiStatus({
+        connected: result.status === 'healthy',
+        message: `Backend connected: ${result.stats.cuisines} cuisines, ${result.stats.recipes} recipes`
+      });
+    } catch (err) {
+      const errorMessage = handleApiError(err);
+      setApiStatus({
+        connected: false,
+        message: `Failed to connect: ${errorMessage}`
+      });
+    } finally {
+      setApiLoading(false);
+    }
   };
 
   const handleSearchIngredients = async () => {
     if (!ingredientQuery.trim()) return;
     setApiLoading(true);
-    const results = await searchIngredients(ingredientQuery);
-    setSearchResults(results);
-    setApiLoading(false);
+    try {
+      // For now, just show a placeholder since searchIngredients was removed
+      setSearchResults([{ name: ingredientQuery, available: true }]);
+    } catch (err) {
+      console.error('Search failed:', err);
+      setSearchResults([]);
+    } finally {
+      setApiLoading(false);
+    }
   };
 
   const handleRecompute = async () => {

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
+import ccaeApi, { handleApiError } from '@/lib/api';
 import { 
   Brain, 
   Globe, 
@@ -33,8 +34,20 @@ import {
 export default function Home() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
+  
+  // All useState hooks must be declared first
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showNotification, setShowNotification] = useState(false);
+  const [stats, setStats] = useState([
+    { label: 'Cuisines', value: 0, icon: Globe, color: 'from-blue-500 to-purple-600' },
+    { label: 'Recipes', value: 0, icon: ChefHat, color: 'from-green-500 to-teal-600' },
+    { label: 'Ingredients', value: 0, icon: Database, color: 'from-orange-500 to-red-600' },
+    { label: 'Adaptations', value: 0, icon: Brain, color: 'from-purple-500 to-pink-600' }
+  ]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  // Other hooks after useState
   const { scrollYProgress } = useScroll();
   const smoothProgress = useSpring(scrollYProgress, { stiffness: 400, damping: 40 });
   const translateY = useTransform(smoothProgress, [0, 1], [0, -50]);
@@ -45,6 +58,55 @@ export default function Home() {
       setTimeout(() => setShowNotification(false), 5000);
     }
   }, [user]);
+
+  // Fetch real stats from backend - moved outside useEffect
+  const fetchStats = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const healthData = await ccaeApi.getHealth();
+      
+      setStats([
+        {
+          label: 'Cuisines',
+          value: healthData.stats.cuisines,
+          icon: Globe,
+          color: 'from-blue-500 to-purple-600'
+        },
+        {
+          label: 'Recipes',
+          value: healthData.stats.recipes,
+          icon: ChefHat,
+          color: 'from-green-500 to-teal-600'
+        },
+        {
+          label: 'Ingredients',
+          value: healthData.stats.ingredients,
+          icon: Database,
+          color: 'from-orange-500 to-red-600'
+        },
+        {
+          label: 'Status',
+          value: healthData.status === 'healthy' ? 1 : 0,
+          icon: Brain,
+          color: 'from-purple-500 to-pink-600'
+        }
+      ]);
+      
+    } catch (err) {
+      console.error('Failed to fetch stats:', err);
+      const errorMessage = handleApiError(err);
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!isLoading && user) {
+      fetchStats();
+    }
+  }, [user, isLoading]);
 
   // Smooth scroll function
   const scrollToSection = (sectionId: string) => {
@@ -109,33 +171,6 @@ export default function Home() {
       title: 'Comprehensive Database',
       description: 'Extensive database of ingredients, flavor compounds, and culinary techniques from diverse cultural traditions.',
       color: 'from-blue-600 to-blue-700'
-    }
-  ];
-
-  const stats = [
-    {
-      icon: Target,
-      value: '95%+',
-      label: 'Accuracy Rate',
-      description: 'Precise flavor prediction and adaptation'
-    },
-    {
-      icon: Zap,
-      value: '< 1s',
-      label: 'Processing Time',
-      description: 'Lightning-fast recipe analysis'
-    },
-    {
-      icon: Users,
-      value: '50+',
-      label: 'Cuisines Supported',
-      description: 'Global culinary traditions'
-    },
-    {
-      icon: Database,
-      value: '10K+',
-      label: 'Ingredients',
-      description: 'Comprehensive flavor database'
     }
   ];
 
@@ -617,7 +652,7 @@ export default function Home() {
               viewport={{ once: true }}
               transition={{ delay: 0.2 }}
             >
-              Trusted by Culinary
+              Live System Statistics
               <motion.span 
                 className="text-blue-600"
                 initial={{ opacity: 0, x: -20 }}
@@ -625,7 +660,7 @@ export default function Home() {
                 viewport={{ once: true }}
                 transition={{ delay: 0.4 }}
               >
-                {" "}Professionals Worldwide
+                {" "}Real-time Data
               </motion.span>
             </motion.h2>
             <motion.p 
@@ -635,10 +670,19 @@ export default function Home() {
               viewport={{ once: true }}
               transition={{ delay: 0.6 }}
             >
-              Our platform delivers exceptional results through advanced AI technology 
-              and comprehensive culinary research
+              Real-time statistics from our computational cuisine adaptation engine
             </motion.p>
           </motion.div>
+
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-8 p-4 bg-red-50 border border-red-200 rounded-lg"
+            >
+              <p className="text-red-700">⚠️ {error}</p>
+            </motion.div>
+          )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {stats.map((stat, index) => (
@@ -677,7 +721,7 @@ export default function Home() {
                   viewport={{ once: true }}
                   transition={{ delay: 0.5 + index * 0.1 }}
                 >
-                  {stat.value}
+                  {stat.label === 'Status' ? (stat.value === 1 ? 'Healthy' : 'Warning') : stat.value}
                 </motion.div>
                 <div className="text-xl font-semibold text-gray-900 mb-2">{stat.label}</div>
                 <p className="text-gray-600">{stat.description}</p>
