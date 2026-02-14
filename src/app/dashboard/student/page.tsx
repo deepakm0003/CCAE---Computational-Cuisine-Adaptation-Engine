@@ -14,7 +14,9 @@ import {
   GraduationCap,
   Star,
   TrendingUp,
-  Award
+  Award,
+  Globe,
+  Zap
 } from 'lucide-react';
 
 export default function StudentDashboardPage() {
@@ -75,13 +77,13 @@ export default function StudentDashboardPage() {
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-gradient-to-r from-green-500 to-blue-600 rounded-2xl p-8 text-white"
+        className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl p-8 text-white"
       >
         <div className="flex items-center gap-4">
           <GraduationCap className="w-12 h-12" />
           <div>
             <h1 className="text-3xl font-bold mb-2">Student Dashboard</h1>
-            <p className="text-green-100">
+            <p className="text-blue-100">
               Learn about cross-cultural cuisine and food science through interactive courses
             </p>
           </div>
@@ -97,8 +99,8 @@ export default function StudentDashboardPage() {
       >
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
           <div className="flex items-center justify-between mb-4">
-            <BookOpen className="w-8 h-8 text-green-600" />
-            <TrendingUp className="w-4 h-4 text-green-600" />
+            <BookOpen className="w-8 h-8 text-blue-600" />
+            <TrendingUp className="w-4 h-4 text-blue-600" />
           </div>
           <div className="text-2xl font-bold text-gray-900">
             {stats.coursesCompleted}
@@ -109,7 +111,7 @@ export default function StudentDashboardPage() {
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
           <div className="flex items-center justify-between mb-4">
             <Target className="w-8 h-8 text-blue-600" />
-            <div className="text-xs text-green-600 font-medium">+8</div>
+            <div className="text-xs text-blue-600 font-medium">+8</div>
           </div>
           <div className="text-2xl font-bold text-gray-900">
             {stats.recipesExplored}
@@ -119,8 +121,8 @@ export default function StudentDashboardPage() {
 
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
           <div className="flex items-center justify-between mb-4">
-            <Play className="w-8 h-8 text-purple-600" />
-            <div className="text-xs text-green-600 font-medium">+3</div>
+            <Play className="w-8 h-8 text-blue-600" />
+            <div className="text-xs text-blue-600 font-medium">+3</div>
           </div>
           <div className="text-2xl font-bold text-gray-900">
             {stats.adaptationsTried}
@@ -130,8 +132,8 @@ export default function StudentDashboardPage() {
 
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
           <div className="flex items-center justify-between mb-4">
-            <Clock className="w-8 h-8 text-orange-600" />
-            <div className="text-xs text-green-600 font-medium">+2h</div>
+            <Clock className="w-8 h-8 text-blue-600" />
+            <div className="text-xs text-blue-600 font-medium">+2h</div>
           </div>
           <div className="text-2xl font-bold text-gray-900">
             {stats.studyTime}h
@@ -156,7 +158,7 @@ export default function StudentDashboardPage() {
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="font-medium text-gray-900">{course.name}</h3>
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                    course.status === 'completed' ? 'bg-green-100 text-green-800' :
+                    course.status === 'completed' ? 'bg-blue-100 text-blue-800' :
                     course.status === 'in-progress' ? 'bg-blue-100 text-blue-800' :
                     'bg-gray-100 text-gray-800'
                   }`}>
@@ -166,7 +168,7 @@ export default function StudentDashboardPage() {
                 <div className="w-full bg-gray-200 rounded-full h-2">
                   <div
                     className={`h-2 rounded-full ${
-                      course.status === 'completed' ? 'bg-green-500' :
+                      course.status === 'completed' ? 'bg-blue-500' :
                       course.status === 'in-progress' ? 'bg-blue-500' :
                       'bg-gray-400'
                     }`}
@@ -188,12 +190,12 @@ export default function StudentDashboardPage() {
                 key={index}
                 className={`text-center p-4 rounded-lg border ${
                   achievement.earned 
-                    ? 'bg-yellow-50 border-yellow-200' 
+                    ? 'bg-blue-50 border-blue-200' 
                     : 'bg-gray-50 border-gray-200 opacity-50'
                 }`}
               >
                 <achievement.icon className={`w-8 h-8 mx-auto mb-2 ${
-                  achievement.earned ? 'text-yellow-600' : 'text-gray-400'
+                  achievement.earned ? 'text-blue-600' : 'text-gray-400'
                 }`} />
                 <p className="text-sm font-medium text-gray-900">{achievement.name}</p>
                 <p className="text-xs text-gray-500 mt-1">
@@ -228,9 +230,9 @@ export default function StudentDashboardPage() {
           
           <a
             href="/adapt"
-            className="flex items-center gap-3 p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors"
+            className="flex items-center gap-3 p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
           >
-            <Play className="w-5 h-5 text-green-600" />
+            <Play className="w-5 h-5 text-blue-600" />
             <div>
               <p className="font-medium text-gray-900">Try Adaptation</p>
               <p className="text-sm text-gray-600">Practice your skills</p>
@@ -239,9 +241,9 @@ export default function StudentDashboardPage() {
           
           <a
             href="/features"
-            className="flex items-center gap-3 p-4 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors"
+            className="flex items-center gap-3 p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
           >
-            <BookOpen className="w-5 h-5 text-purple-600" />
+            <BookOpen className="w-5 h-5 text-blue-600" />
             <div>
               <p className="font-medium text-gray-900">Learn More</p>
               <p className="text-sm text-gray-600">Study resources</p>

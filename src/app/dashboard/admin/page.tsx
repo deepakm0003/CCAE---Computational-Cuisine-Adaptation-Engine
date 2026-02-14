@@ -60,18 +60,18 @@ export default function AdminDashboardPage() {
 
   const getAlertIcon = (type: string) => {
     switch (type) {
-      case 'warning': return <AlertTriangle className="w-5 h-5 text-yellow-600" />;
-      case 'error': return <AlertTriangle className="w-5 h-5 text-red-600" />;
-      case 'success': return <CheckCircle className="w-5 h-5 text-green-600" />;
+      case 'warning': return <AlertTriangle className="w-5 h-5 text-blue-600" />;
+      case 'error': return <AlertTriangle className="w-5 h-5 text-blue-600" />;
+      case 'success': return <CheckCircle className="w-5 h-5 text-blue-600" />;
       default: return <AlertTriangle className="w-5 h-5 text-blue-600" />;
     }
   };
 
   const getAlertColor = (type: string) => {
     switch (type) {
-      case 'warning': return 'bg-yellow-50 border-yellow-200';
-      case 'error': return 'bg-red-50 border-red-200';
-      case 'success': return 'bg-green-50 border-green-200';
+      case 'warning': return 'bg-blue-50 border-blue-200';
+      case 'error': return 'bg-blue-50 border-blue-200';
+      case 'success': return 'bg-blue-50 border-blue-200';
       default: return 'bg-blue-50 border-blue-200';
     }
   };
@@ -94,13 +94,13 @@ export default function AdminDashboardPage() {
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-gradient-to-r from-red-500 to-orange-600 rounded-2xl p-8 text-white"
+        className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl p-8 text-white"
       >
         <div className="flex items-center gap-4">
           <Shield className="w-12 h-12" />
           <div>
             <h1 className="text-3xl font-bold mb-2">Admin Dashboard</h1>
-            <p className="text-red-100">
+            <p className="text-blue-100">
               System administration and monitoring center
             </p>
           </div>
@@ -117,7 +117,7 @@ export default function AdminDashboardPage() {
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
           <div className="flex items-center justify-between mb-4">
             <Users className="w-8 h-8 text-blue-600" />
-            <TrendingUp className="w-4 h-4 text-green-600" />
+            <TrendingUp className="w-4 h-4 text-blue-600" />
           </div>
           <div className="text-2xl font-bold text-gray-900">
             {stats.totalUsers}
@@ -127,8 +127,8 @@ export default function AdminDashboardPage() {
 
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
           <div className="flex items-center justify-between mb-4">
-            <Activity className="w-8 h-8 text-green-600" />
-            <div className="text-xs text-green-600 font-medium">+12</div>
+            <Activity className="w-8 h-8 text-blue-600" />
+            <div className="text-xs text-blue-600 font-medium">+12</div>
           </div>
           <div className="text-2xl font-bold text-gray-900">
             {stats.activeUsers}
@@ -138,8 +138,8 @@ export default function AdminDashboardPage() {
 
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
           <div className="flex items-center justify-between mb-4">
-            <Zap className="w-8 h-8 text-yellow-600" />
-            <div className="text-xs text-green-600 font-medium">Optimal</div>
+            <Zap className="w-8 h-8 text-blue-600" />
+            <div className="text-xs text-blue-600 font-medium">Optimal</div>
           </div>
           <div className="text-2xl font-bold text-gray-900">
             {stats.systemHealth}%
@@ -149,8 +149,8 @@ export default function AdminDashboardPage() {
 
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
           <div className="flex items-center justify-between mb-4">
-            <Database className="w-8 h-8 text-purple-600" />
-            <div className="text-xs text-green-600 font-medium">+1K</div>
+            <Database className="w-8 h-8 text-blue-600" />
+            <div className="text-xs text-blue-600 font-medium">+1K</div>
           </div>
           <div className="text-2xl font-bold text-gray-900">
             {stats.dataProcessed.toLocaleString()}
@@ -227,9 +227,9 @@ export default function AdminDashboardPage() {
           
           <a
             href="/metrics"
-            className="flex items-center gap-3 p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors"
+            className="flex items-center gap-3 p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
           >
-            <BarChart3 className="w-5 h-5 text-green-600" />
+            <BarChart3 className="w-5 h-5 text-blue-600" />
             <div>
               <p className="font-medium text-gray-900">System Metrics</p>
               <p className="text-sm text-gray-600">Performance monitoring</p>
@@ -238,9 +238,9 @@ export default function AdminDashboardPage() {
           
           <a
             href="/settings"
-            className="flex items-center gap-3 p-4 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors"
+            className="flex items-center gap-3 p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
           >
-            <Settings className="w-5 h-5 text-purple-600" />
+            <Settings className="w-5 h-5 text-blue-600" />
             <div>
               <p className="font-medium text-gray-900">System Settings</p>
               <p className="text-sm text-gray-600">Configure platform</p>
@@ -260,35 +260,35 @@ export default function AdminDashboardPage() {
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div className="text-center">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-              <CheckCircle className="w-8 h-8 text-green-600" />
+            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+              <CheckCircle className="w-8 h-8 text-blue-600" />
             </div>
             <h3 className="font-medium text-gray-900">API Server</h3>
-            <p className="text-sm text-green-600">Operational</p>
+            <p className="text-sm text-blue-600">Operational</p>
           </div>
           
           <div className="text-center">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-              <Database className="w-8 h-8 text-green-600" />
+            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+              <Database className="w-8 h-8 text-blue-600" />
             </div>
             <h3 className="font-medium text-gray-900">Database</h3>
-            <p className="text-sm text-green-600">Healthy</p>
+            <p className="text-sm text-blue-600">Healthy</p>
           </div>
           
           <div className="text-center">
-            <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-3">
-              <Zap className="w-8 h-8 text-yellow-600" />
+            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+              <Zap className="w-8 h-8 text-blue-600" />
             </div>
             <h3 className="font-medium text-gray-900">Processing Queue</h3>
-            <p className="text-sm text-yellow-600">High Load</p>
+            <p className="text-sm text-blue-600">High Load</p>
           </div>
           
           <div className="text-center">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-              <Globe className="w-8 h-8 text-green-600" />
+            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+              <Globe className="w-8 h-8 text-blue-600" />
             </div>
             <h3 className="font-medium text-gray-900">CDN</h3>
-            <p className="text-sm text-green-600">Operational</p>
+            <p className="text-sm text-blue-600">Operational</p>
           </div>
         </div>
       </motion.div>

@@ -140,7 +140,7 @@ export default function DashboardPage() {
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-8 text-white"
+        className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl p-8 text-white"
       >
         <div className="flex items-center justify-between">
           <div>
@@ -178,7 +178,7 @@ export default function DashboardPage() {
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
           <div className="flex items-center justify-between mb-4">
             <Target className="w-8 h-8 text-blue-600" />
-            <TrendingUp className="w-4 h-4 text-green-600" />
+            <TrendingUp className="w-4 h-4 text-blue-500" />
           </div>
           <div className="text-2xl font-bold text-gray-900">
             {stats.totalAdaptations}
@@ -188,8 +188,8 @@ export default function DashboardPage() {
 
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
           <div className="flex items-center justify-between mb-4">
-            <Zap className="w-8 h-8 text-green-600" />
-            <div className="text-xs text-green-600 font-medium">+5%</div>
+            <Zap className="w-8 h-8 text-blue-500" />
+            <div className="text-xs text-blue-500 font-medium">+5%</div>
           </div>
           <div className="text-2xl font-bold text-gray-900">
             {stats.successRate}%
@@ -199,8 +199,8 @@ export default function DashboardPage() {
 
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
           <div className="flex items-center justify-between mb-4">
-            <Users className="w-8 h-8 text-purple-600" />
-            <div className="text-xs text-green-600 font-medium">+12</div>
+            <Users className="w-8 h-8 text-blue-600" />
+            <div className="text-xs text-blue-500 font-medium">+12</div>
           </div>
           <div className="text-2xl font-bold text-gray-900">
             {stats.activeUsers}
@@ -210,8 +210,8 @@ export default function DashboardPage() {
 
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
           <div className="flex items-center justify-between mb-4">
-            <Clock className="w-8 h-8 text-orange-600" />
-            <div className="text-xs text-red-600 font-medium">-50ms</div>
+            <Clock className="w-8 h-8 text-blue-400" />
+            <div className="text-xs text-blue-500 font-medium">-50ms</div>
           </div>
           <div className="text-2xl font-bold text-gray-900">
             {stats.avgProcessingTime}ms
@@ -274,7 +274,7 @@ export default function DashboardPage() {
           </div>
           
           <div className="flex items-center gap-4 pb-4 border-b border-gray-100">
-            <div className="w-2 h-2 bg-green-600 rounded-full"></div>
+            <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
             <div className="flex-1">
               <p className="text-sm text-gray-900">
                 System successfully initialized with all components operational.
@@ -284,7 +284,7 @@ export default function DashboardPage() {
           </div>
           
           <div className="flex items-center gap-4">
-            <div className="w-2 h-2 bg-purple-600 rounded-full"></div>
+            <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
             <div className="flex-1">
               <p className="text-sm text-gray-900">
                 New features and improvements have been added to the platform.

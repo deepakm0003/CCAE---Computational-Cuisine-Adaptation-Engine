@@ -15,42 +15,42 @@ export default function FeaturesPage() {
       icon: Globe,
       title: 'Cross-Cultural Analysis',
       description: 'Comprehensive analysis of culinary traditions from around the world, enabling authentic cross-cultural recipe transformations.',
-      color: 'green'
+      color: 'blue'
     },
     {
       icon: Zap,
       title: 'Real-Time Processing',
       description: 'Lightning-fast computation of adaptation possibilities with real-time feedback and confidence scores.',
-      color: 'yellow'
+      color: 'blue'
     },
     {
       icon: Shield,
       title: 'Identity Preservation',
       description: 'Sophisticated algorithms ensure that the core identity and cultural significance of recipes are maintained during adaptation.',
-      color: 'purple'
+      color: 'blue'
     },
     {
       icon: BarChart3,
       title: 'Advanced Analytics',
       description: 'Detailed metrics and insights on adaptation success rates, compatibility scores, and culinary patterns.',
-      color: 'orange'
+      color: 'blue'
     },
     {
       icon: Database,
       title: 'Comprehensive Database',
       description: 'Extensive database of ingredients, flavor compounds, and culinary techniques from diverse cultural traditions.',
-      color: 'red'
+      color: 'blue'
     }
   ];
 
   const getColorClasses = (color: string) => {
     const colors = {
       blue: 'bg-blue-100 text-blue-600',
-      green: 'bg-green-100 text-green-600',
-      yellow: 'bg-yellow-100 text-yellow-600',
-      purple: 'bg-purple-100 text-purple-600',
-      orange: 'bg-orange-100 text-orange-600',
-      red: 'bg-red-100 text-red-600'
+      green: 'bg-blue-100 text-blue-600',
+      yellow: 'bg-blue-100 text-blue-600',
+      purple: 'bg-blue-100 text-blue-600',
+      orange: 'bg-blue-100 text-blue-600',
+      red: 'bg-blue-100 text-blue-600'
     };
     return colors[color as keyof typeof colors] || colors.blue;
   };
@@ -121,7 +121,7 @@ export default function FeaturesPage() {
             
             <div>
               <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <Play className="w-5 h-5 text-green-600" />
+                <Play className="w-5 h-5 text-blue-600" />
                 Performance Metrics
               </h3>
               <ul className="space-y-2 text-gray-600">
@@ -154,7 +154,7 @@ export default function FeaturesPage() {
             </div>
             
             <div className="text-center">
-              <Zap className="w-12 h-12 text-yellow-600 mx-auto mb-3" />
+              <Zap className="w-12 h-12 text-blue-600 mx-auto mb-3" />
               <h3 className="font-semibold text-gray-900 mb-2">Real-Time Feedback</h3>
               <p className="text-gray-600 text-sm">
                 Instant visual feedback and confidence scores for all adaptations
@@ -162,7 +162,7 @@ export default function FeaturesPage() {
             </div>
             
             <div className="text-center">
-              <Globe className="w-12 h-12 text-green-600 mx-auto mb-3" />
+              <Globe className="w-12 h-12 text-blue-600 mx-auto mb-3" />
               <h3 className="font-semibold text-gray-900 mb-2">Multi-Language Support</h3>
               <p className="text-gray-600 text-sm">
                 Available in multiple languages with cultural context awareness

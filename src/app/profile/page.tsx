@@ -36,9 +36,9 @@ export default function ProfilePage() {
   const getRoleIcon = (role: string) => {
     switch (role) {
       case 'chef': return <ChefHat className="w-6 h-6 text-blue-600" />;
-      case 'student': return <User className="w-6 h-6 text-green-600" />;
-      case 'researcher': return <GraduationCap className="w-6 h-6 text-purple-600" />;
-      case 'admin': return <Shield className="w-6 h-6 text-red-600" />;
+      case 'student': return <User className="w-6 h-6 text-blue-600" />;
+      case 'researcher': return <GraduationCap className="w-6 h-6 text-blue-600" />;
+      case 'admin': return <Shield className="w-6 h-6 text-blue-600" />;
       default: return <User className="w-6 h-6 text-gray-600" />;
     }
   };
@@ -46,9 +46,9 @@ export default function ProfilePage() {
   const getRoleColor = (role: string) => {
     switch (role) {
       case 'chef': return 'bg-blue-100 text-blue-800';
-      case 'student': return 'bg-green-100 text-green-800';
-      case 'researcher': return 'bg-purple-100 text-purple-800';
-      case 'admin': return 'bg-red-100 text-red-800';
+      case 'student': return 'bg-blue-100 text-blue-800';
+      case 'researcher': return 'bg-blue-100 text-blue-800';
+      case 'admin': return 'bg-blue-100 text-blue-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -80,7 +80,7 @@ export default function ProfilePage() {
           <h1 className="text-3xl font-bold text-gray-900">Profile</h1>
           <button
             onClick={logout}
-            className="flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+            className="flex items-center gap-2 px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
           >
             <LogOut className="w-4 h-4" />
             Logout
@@ -96,7 +96,7 @@ export default function ProfilePage() {
           >
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
               <div className="text-center">
-                <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
                   <span className="text-3xl font-bold text-white">
                     {user.name.charAt(0).toUpperCase()}
                   </span>
@@ -143,7 +143,7 @@ export default function ProfilePage() {
               <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
                 <div className="flex items-center justify-between mb-2">
                   <Award className="w-8 h-8 text-blue-600" />
-                  <span className="text-sm text-green-600 font-medium">+12%</span>
+                  <span className="text-sm text-blue-600 font-medium">+12%</span>
                 </div>
                 <div className="text-2xl font-bold text-gray-900">
                   {stats.adaptations}
@@ -153,8 +153,8 @@ export default function ProfilePage() {
 
               <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
                 <div className="flex items-center justify-between mb-2">
-                  <ChefHat className="w-8 h-8 text-green-600" />
-                  <span className="text-sm text-green-600 font-medium">+5</span>
+                  <ChefHat className="w-8 h-8 text-blue-600" />
+                  <span className="text-sm text-blue-600 font-medium">+5</span>
                 </div>
                 <div className="text-2xl font-bold text-gray-900">
                   {stats.recipesCreated}
@@ -164,8 +164,8 @@ export default function ProfilePage() {
 
               <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
                 <div className="flex items-center justify-between mb-2">
-                  <GraduationCap className="w-8 h-8 text-purple-600" />
-                  <span className="text-sm text-green-600 font-medium">+2</span>
+                  <GraduationCap className="w-8 h-8 text-blue-600" />
+                  <span className="text-sm text-blue-600 font-medium">+2</span>
                 </div>
                 <div className="text-2xl font-bold text-gray-900">
                   {stats.researchPapers}
@@ -190,7 +190,7 @@ export default function ProfilePage() {
                 </div>
                 
                 <div className="flex items-start gap-3 pb-4 border-b border-gray-100">
-                  <div className="w-2 h-2 bg-green-600 rounded-full mt-2"></div>
+                  <div className="w-2 h-2 bg-blue-600 rounded-full mt-2"></div>
                   <div className="flex-1">
                     <p className="text-sm text-gray-900">
                       Created new recipe <span className="font-medium">Fusion Sushi Bowl</span>
@@ -200,7 +200,7 @@ export default function ProfilePage() {
                 </div>
                 
                 <div className="flex items-start gap-3 pb-4 border-b border-gray-100">
-                  <div className="w-2 h-2 bg-purple-600 rounded-full mt-2"></div>
+                  <div className="w-2 h-2 bg-blue-600 rounded-full mt-2"></div>
                   <div className="flex-1">
                     <p className="text-sm text-gray-900">
                       Published research paper on <span className="font-medium">Cross-Cultural Flavor Analysis</span>
@@ -210,7 +210,7 @@ export default function ProfilePage() {
                 </div>
                 
                 <div className="flex items-start gap-3">
-                  <div className="w-2 h-2 bg-orange-600 rounded-full mt-2"></div>
+                  <div className="w-2 h-2 bg-blue-600 rounded-full mt-2"></div>
                   <div className="flex-1">
                     <p className="text-sm text-gray-900">
                       Completed <span className="font-medium">Advanced Culinary Analytics</span> course
@@ -227,8 +227,8 @@ export default function ProfilePage() {
               
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="text-center">
-                  <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                    <Award className="w-8 h-8 text-yellow-600" />
+                  <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <Award className="w-8 h-8 text-blue-600" />
                   </div>
                   <p className="text-xs font-medium text-gray-900">First Adaptation</p>
                 </div>
@@ -241,15 +241,15 @@ export default function ProfilePage() {
                 </div>
                 
                 <div className="text-center">
-                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                    <Globe className="w-8 h-8 text-green-600" />
+                  <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <Globe className="w-8 h-8 text-blue-600" />
                   </div>
                   <p className="text-xs font-medium text-gray-900">Culture Explorer</p>
                 </div>
                 
                 <div className="text-center">
-                  <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                    <GraduationCap className="w-8 h-8 text-purple-600" />
+                  <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <GraduationCap className="w-8 h-8 text-blue-600" />
                   </div>
                   <p className="text-xs font-medium text-gray-900">Research Pioneer</p>
                 </div>

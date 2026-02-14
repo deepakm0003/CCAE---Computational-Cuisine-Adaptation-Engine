@@ -130,7 +130,7 @@ export default function SettingsPage() {
                       <select
                         value={settings.language}
                         onChange={(e) => setSettings({...settings, language: e.target.value})}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
                       >
                         <option value="english">English</option>
                         <option value="spanish">Spanish</option>
@@ -146,7 +146,7 @@ export default function SettingsPage() {
                       <select
                         value={settings.timezone}
                         onChange={(e) => setSettings({...settings, timezone: e.target.value})}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
                       >
                         <option value="UTC">UTC</option>
                         <option value="EST">Eastern Time</option>
@@ -232,7 +232,7 @@ export default function SettingsPage() {
                       <select
                         value={settings.profileVisibility}
                         onChange={(e) => setSettings({...settings, profileVisibility: e.target.value})}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
                       >
                         <option value="public">Public</option>
                         <option value="private">Private</option>
@@ -286,7 +286,7 @@ export default function SettingsPage() {
                           value={settings.apiKey}
                           onChange={(e) => setSettings({...settings, apiKey: e.target.value})}
                           placeholder="Enter your API key"
-                          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
                         />
                         <button
                           onClick={() => setSettings({...settings, showApiKey: !settings.showApiKey})}
@@ -306,7 +306,7 @@ export default function SettingsPage() {
                         value={settings.webhookUrl}
                         onChange={(e) => setSettings({...settings, webhookUrl: e.target.value})}
                         placeholder="https://your-webhook-url.com"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
                       />
                     </div>
                   </div>

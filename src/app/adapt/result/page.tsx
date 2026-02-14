@@ -73,8 +73,8 @@ export default function AdaptResultPage() {
     return (
       <div className="min-h-screen bg-[#FAFBFC] flex items-center justify-center">
         <div className="text-center">
-          <AlertTriangle className="w-16 h-16 text-red-600 mx-auto mb-4" />
-          <p className="text-red-600 mb-4">{error || 'No adaptation result found'}</p>
+          <AlertTriangle className="w-16 h-16 text-blue-600 mx-auto mb-4" />
+          <p className="text-blue-600 mb-4">{error || 'No adaptation result found'}</p>
           <button
             onClick={() => router.push('/adapt')}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
@@ -96,7 +96,7 @@ export default function AdaptResultPage() {
           className="text-center mb-12"
         >
           <div className="flex items-center justify-center mb-4">
-            <CheckCircle className="w-16 h-16 text-green-600" />
+            <CheckCircle className="w-16 h-16 text-blue-600" />
           </div>
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
             Adaptation Complete!

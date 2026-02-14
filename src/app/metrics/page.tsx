@@ -114,16 +114,16 @@ export default function MetricsPage() {
 
   const getStatusColor = (status: MetricData['status']) => {
     switch (status) {
-      case 'good': return 'text-green-600 bg-green-100';
-      case 'warning': return 'text-yellow-600 bg-yellow-100';
-      case 'critical': return 'text-red-600 bg-red-100';
+      case 'good': return 'text-blue-600 bg-blue-100';
+      case 'warning': return 'text-blue-600 bg-blue-100';
+      case 'critical': return 'text-blue-600 bg-blue-100';
     }
   };
 
   const getTrendIcon = (trend: MetricData['trend']) => {
     switch (trend) {
-      case 'up': return <TrendingUp className="w-4 h-4 text-green-600" />;
-      case 'down': return <TrendingUp className="w-4 h-4 text-red-600 rotate-180" />;
+      case 'up': return <TrendingUp className="w-4 h-4 text-blue-600" />;
+      case 'down': return <TrendingUp className="w-4 h-4 text-blue-600 rotate-180" />;
       case 'stable': return <div className="w-4 h-4 bg-gray-400 rounded-full" />;
     }
   };
@@ -173,11 +173,11 @@ export default function MetricsPage() {
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6"
+            className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6"
           >
             <div className="flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5 text-red-600" />
-              <span className="text-red-800">{error}</span>
+              <AlertTriangle className="w-5 h-5 text-blue-600" />
+              <span className="text-blue-800">{error}</span>
             </div>
           </motion.div>
         )}
@@ -198,9 +198,9 @@ export default function MetricsPage() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               <div className="text-center">
                 <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium mb-2 ${
-                  health.api_status === 'healthy' ? 'bg-green-100 text-green-800' :
-                  health.api_status === 'warning' ? 'bg-yellow-100 text-yellow-800' :
-                  'bg-red-100 text-red-800'
+                  health.api_status === 'healthy' ? 'bg-blue-100 text-blue-800' :
+                  health.api_status === 'warning' ? 'bg-blue-100 text-blue-800' :
+                  'bg-blue-100 text-blue-800'
                 }`}>
                   <CheckCircle className="w-4 h-4" />
                   {health.api_status.toUpperCase()}
@@ -273,9 +273,9 @@ export default function MetricsPage() {
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div
                   className={`h-2 rounded-full ${
-                    metric.status === 'good' ? 'bg-green-500' :
-                    metric.status === 'warning' ? 'bg-yellow-500' :
-                    'bg-red-500'
+                    metric.status === 'good' ? 'bg-blue-500' :
+                    metric.status === 'warning' ? 'bg-blue-500' :
+                    'bg-blue-500'
                   }`}
                   style={{ 
                     width: `${Math.min(100, (metric.value / 100) * 100)}%` 

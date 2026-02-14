@@ -127,10 +127,10 @@ export default function CuisinePage() {
   const regions = ['all', 'Europe', 'Asia', 'Americas', 'Africa', 'Middle Eastern'];
 
   const getComplexityColor = (complexity: number) => {
-    if (complexity <= 3) return 'bg-green-500';
-    if (complexity <= 6) return 'bg-yellow-500';
-    if (complexity <= 8) return 'bg-orange-500';
-    return 'bg-red-500';
+    if (complexity <= 3) return 'bg-blue-500';
+    if (complexity <= 6) return 'bg-blue-500';
+    if (complexity <= 8) return 'bg-blue-500';
+    return 'bg-blue-500';
   };
 
   if (isLoading) {
@@ -246,11 +246,11 @@ export default function CuisinePage() {
 
                 <div className="flex items-center justify-between text-sm">
                   <div className="flex items-center gap-1">
-                    <Star className="w-4 h-4 text-yellow-500" />
+                    <Star className="w-4 h-4 text-blue-500" />
                     <span className="font-medium text-gray-900">{cuisine.avgRating}</span>
                   </div>
                   <div className="flex items-center gap-1">
-                    <TrendingUp className="w-4 h-4 text-green-600" />
+                    <TrendingUp className="w-4 h-4 text-blue-600" />
                     <span className="text-gray-600">{cuisine.adaptations} adaptations</span>
                   </div>
                 </div>

@@ -17,9 +17,9 @@ const IntensitySlider = () => {
   }, [intensity, preserveIdentity, optimizeCompatibility]);
 
   const getIntensityColor = (value: number) => {
-    if (value < 33) return 'bg-green-500';
-    if (value < 66) return 'bg-yellow-500';
-    return 'bg-red-500';
+    if (value < 33) return 'bg-blue-500';
+    if (value < 66) return 'bg-blue-500';
+    return 'bg-blue-500';
   };
 
   const getIntensityLabel = (value: number) => {

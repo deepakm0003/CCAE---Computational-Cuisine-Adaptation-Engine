@@ -41,26 +41,26 @@ const UploadSummaryCard = () => {
         {/* Completed Files */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <CheckCircle className="w-4 h-4 text-green-600" />
+            <CheckCircle className="w-4 h-4 text-blue-600" />
             <span className="text-sm text-gray-600">Completed</span>
           </div>
-          <span className="font-medium text-green-600">{summary.completedFiles}</span>
+          <span className="font-medium text-blue-600">{summary.completedFiles}</span>
         </div>
 
         {/* Failed Files */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Clock className="w-4 h-4 text-red-600" />
+            <Clock className="w-4 h-4 text-blue-600" />
             <span className="text-sm text-gray-600">Failed</span>
           </div>
-          <span className="font-medium text-red-600">{summary.failedFiles}</span>
+          <span className="font-medium text-blue-600">{summary.failedFiles}</span>
         </div>
 
         {/* Size Progress */}
         <div className="pt-4 border-t border-gray-200">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
-              <Upload className="w-4 h-4 text-purple-600" />
+              <Upload className="w-4 h-4 text-blue-600" />
               <span className="text-sm text-gray-600">Size Progress</span>
             </div>
             <span className="text-sm text-gray-900">
@@ -70,7 +70,7 @@ const UploadSummaryCard = () => {
           
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div
-              className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-300"
+              className="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full transition-all duration-300"
               style={{ width: `${getProgressPercentage()}%` }}
             ></div>
           </div>

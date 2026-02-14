@@ -97,10 +97,10 @@ export default function LoginPage() {
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-2"
+                className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-center gap-2"
               >
-                <AlertTriangle className="w-5 h-5 text-red-600" />
-                <span className="text-red-800">{error}</span>
+                <AlertTriangle className="w-5 h-5 text-blue-600" />
+                <span className="text-blue-800">{error}</span>
               </motion.div>
             )}
 
@@ -112,7 +112,7 @@ export default function LoginPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
                 placeholder="Enter your email"
                 required
               />
@@ -127,7 +127,7 @@ export default function LoginPage() {
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-12"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-12 text-gray-900 bg-white"
                   placeholder="Enter your password"
                   required
                 />
@@ -160,7 +160,7 @@ export default function LoginPage() {
       </motion.div>
 
       {/* Right Side - User Types */}
-      <div className="hidden lg:block lg:w-1/2 bg-gradient-to-br from-blue-600 to-purple-700 p-8">
+      <div className="hidden lg:block lg:w-1/2 bg-gradient-to-br from-blue-600 to-blue-700 p-8">
         <motion.div
           initial={{ opacity: 0, x: 50 }}
           animate={{ opacity: 1, x: 0 }}

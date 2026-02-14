@@ -14,9 +14,9 @@ const UploadProgress = () => {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'completed':
-        return <CheckCircle className="w-5 h-5 text-green-600" />;
+        return <CheckCircle className="w-5 h-5 text-blue-600" />;
       case 'error':
-        return <AlertTriangle className="w-5 h-5 text-red-600" />;
+        return <AlertTriangle className="w-5 h-5 text-blue-600" />;
       case 'uploading':
         return <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>;
       default:
@@ -79,7 +79,7 @@ const UploadProgress = () => {
               )}
               
               {file.status === 'error' && file.error && (
-                <p className="text-xs text-red-600">{file.error}</p>
+                <p className="text-xs text-blue-600">{file.error}</p>
               )}
             </div>
           </motion.div>

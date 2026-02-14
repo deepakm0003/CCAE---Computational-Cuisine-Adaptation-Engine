@@ -98,7 +98,7 @@ const FileUploadCard: React.FC<FileUploadCardProps> = ({
       case 'recipes':
         return <FileText className="w-8 h-8 text-blue-600" />;
       case 'molecules':
-        return <Database className="w-8 h-8 text-green-600" />;
+        return <Database className="w-8 h-8 text-blue-600" />;
     }
   };
 
@@ -107,9 +107,9 @@ const FileUploadCard: React.FC<FileUploadCardProps> = ({
       case 'uploading':
         return <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>;
       case 'success':
-        return <CheckCircle className="w-6 h-6 text-green-600" />;
+        return <CheckCircle className="w-6 h-6 text-blue-600" />;
       case 'error':
-        return <AlertTriangle className="w-6 h-6 text-red-600" />;
+        return <AlertTriangle className="w-6 h-6 text-blue-600" />;
       default:
         return null;
     }
@@ -134,9 +134,9 @@ const FileUploadCard: React.FC<FileUploadCardProps> = ({
           isDragging 
             ? 'border-blue-500 bg-blue-50' 
             : uploadStatus === 'error'
-            ? 'border-red-300 bg-red-50'
+            ? 'border-blue-300 bg-blue-50'
             : uploadStatus === 'success'
-            ? 'border-green-300 bg-green-50'
+            ? 'border-blue-300 bg-blue-50'
             : 'border-gray-300 hover:border-gray-400'
         }`}
         onDragOver={handleDragOver}
@@ -182,14 +182,14 @@ const FileUploadCard: React.FC<FileUploadCardProps> = ({
         {uploadStatus === 'success' && (
           <div className="space-y-4">
             {getStatusIcon()}
-            <p className="text-green-600 font-medium">File uploaded successfully!</p>
+            <p className="text-blue-600 font-medium">File uploaded successfully!</p>
           </div>
         )}
 
         {uploadStatus === 'error' && (
           <div className="space-y-4">
             {getStatusIcon()}
-            <p className="text-red-600 font-medium">{errorMessage}</p>
+            <p className="text-blue-600 font-medium">{errorMessage}</p>
             <button
               onClick={() => {
                 setUploadStatus('idle');

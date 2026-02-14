@@ -91,7 +91,7 @@ export default function FlavorMapPage() {
           <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
             <div className="flex items-center justify-between mb-2">
               <Globe className="w-8 h-8 text-blue-600" />
-              <span className="text-sm text-green-600 font-medium">Live Data</span>
+              <span className="text-sm text-blue-600 font-medium">Live Data</span>
             </div>
             <div className="text-2xl font-bold text-gray-900">
               {flavorData?.cuisines?.length || 0}
@@ -101,8 +101,8 @@ export default function FlavorMapPage() {
 
           <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
             <div className="flex items-center justify-between mb-2">
-              <Brain className="w-8 h-8 text-purple-600" />
-              <span className="text-sm text-green-600 font-medium">Active</span>
+              <Brain className="w-8 h-8 text-blue-600" />
+              <span className="text-sm text-blue-600 font-medium">Active</span>
             </div>
             <div className="text-2xl font-bold text-gray-900">
               {flavorData?.dimensions || 2}
@@ -112,8 +112,8 @@ export default function FlavorMapPage() {
 
           <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
             <div className="flex items-center justify-between mb-2">
-              <Activity className="w-8 h-8 text-green-600" />
-              <span className="text-sm text-green-600 font-medium">Ready</span>
+              <Activity className="w-8 h-8 text-blue-600" />
+              <span className="text-sm text-blue-600 font-medium">Ready</span>
             </div>
             <div className="text-2xl font-bold text-gray-900">
               {flavorData?.molecules?.length || 0}
@@ -123,8 +123,8 @@ export default function FlavorMapPage() {
 
           <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
             <div className="flex items-center justify-between mb-2">
-              <TrendingUp className="w-8 h-8 text-orange-600" />
-              <span className="text-sm text-green-600 font-medium">Updated</span>
+              <TrendingUp className="w-8 h-8 text-blue-600" />
+              <span className="text-sm text-blue-600 font-medium">Updated</span>
             </div>
             <div className="text-2xl font-bold text-gray-900">
               98%
@@ -171,7 +171,7 @@ export default function FlavorMapPage() {
 
               {error ? (
                 <div className="text-center py-12">
-                  <div className="text-red-600 mb-4">{error}</div>
+                  <div className="text-blue-600 mb-4">{error}</div>
                   <button
                     onClick={fetchFlavorMap}
                     className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"

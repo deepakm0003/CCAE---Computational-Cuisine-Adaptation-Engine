@@ -101,7 +101,7 @@ const RecipeDropdown = ({ onPreview }: RecipeDropdownProps) => {
         transition={{ duration: 0.8, delay: 0.2 }}
       >
         <div className="flex items-start gap-3">
-          <AlertTriangle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+          <AlertTriangle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
           <div className="flex-1">
             <h3 className="text-lg font-semibold text-gray-900 mb-2">Recipe Loading Error</h3>
             <p className="text-sm text-gray-600 mb-3">{error}</p>

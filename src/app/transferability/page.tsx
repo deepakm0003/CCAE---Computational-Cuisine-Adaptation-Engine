@@ -53,10 +53,10 @@ export default function TransferabilityPage() {
   };
 
   const getHeatmapColor = (value: number) => {
-    if (value >= 0.8) return 'bg-green-500';
-    if (value >= 0.6) return 'bg-yellow-500';
-    if (value >= 0.4) return 'bg-orange-500';
-    return 'bg-red-500';
+    if (value >= 0.8) return 'bg-blue-500';
+    if (value >= 0.6) return 'bg-blue-500';
+    if (value >= 0.4) return 'bg-blue-500';
+    return 'bg-blue-500';
   };
 
   const getTextColor = (value: number) => {
@@ -106,7 +106,7 @@ export default function TransferabilityPage() {
           <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
             <div className="flex items-center justify-between mb-2">
               <Globe className="w-8 h-8 text-blue-600" />
-              <span className="text-sm text-green-600 font-medium">Live</span>
+              <span className="text-sm text-blue-600 font-medium">Live</span>
             </div>
             <div className="text-2xl font-bold text-gray-900">
               {heatmapData?.source_cuisines?.length || 0}
@@ -116,8 +116,8 @@ export default function TransferabilityPage() {
 
           <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
             <div className="flex items-center justify-between mb-2">
-              <TrendingUp className="w-8 h-8 text-green-600" />
-              <span className="text-sm text-green-600 font-medium">High</span>
+              <TrendingUp className="w-8 h-8 text-blue-600" />
+              <span className="text-sm text-blue-600 font-medium">High</span>
             </div>
             <div className="text-2xl font-bold text-gray-900">85%</div>
             <div className="text-sm text-gray-600">Avg. Transferability</div>
@@ -125,8 +125,8 @@ export default function TransferabilityPage() {
 
           <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
             <div className="flex items-center justify-between mb-2">
-              <Activity className="w-8 h-8 text-purple-600" />
-              <span className="text-sm text-green-600 font-medium">Ready</span>
+              <Activity className="w-8 h-8 text-blue-600" />
+              <span className="text-sm text-blue-600 font-medium">Ready</span>
             </div>
             <div className="text-2xl font-bold text-gray-900">
               {heatmapData?.matrix?.length || 0}²
@@ -136,8 +136,8 @@ export default function TransferabilityPage() {
 
           <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
             <div className="flex items-center justify-between mb-2">
-              <Shield className="w-8 h-8 text-orange-600" />
-              <span className="text-sm text-green-600 font-medium">Valid</span>
+              <Shield className="w-8 h-8 text-blue-600" />
+              <span className="text-sm text-blue-600 font-medium">Valid</span>
             </div>
             <div className="text-2xl font-bold text-gray-900">98%</div>
             <div className="text-sm text-gray-600">Confidence Score</div>
@@ -166,8 +166,8 @@ export default function TransferabilityPage() {
 
           {error ? (
             <div className="text-center py-12">
-              <AlertCircle className="w-12 h-12 text-red-600 mx-auto mb-4" />
-              <div className="text-red-600 mb-4">{error}</div>
+              <AlertCircle className="w-12 h-12 text-blue-600 mx-auto mb-4" />
+              <div className="text-blue-600 mb-4">{error}</div>
               <button
                 onClick={fetchHeatmapData}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
@@ -234,28 +234,28 @@ export default function TransferabilityPage() {
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Transferability Scale</h3>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-green-500 rounded-lg"></div>
+              <div className="w-8 h-8 bg-blue-500 rounded-lg"></div>
               <div>
                 <div className="font-medium text-gray-900">Excellent (0.8-1.0)</div>
                 <div className="text-sm text-gray-600">Highly compatible</div>
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-yellow-500 rounded-lg"></div>
+              <div className="w-8 h-8 bg-blue-500 rounded-lg"></div>
               <div>
                 <div className="font-medium text-gray-900">Good (0.6-0.8)</div>
                 <div className="text-sm text-gray-600">Moderately compatible</div>
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-orange-500 rounded-lg"></div>
+              <div className="w-8 h-8 bg-blue-500 rounded-lg"></div>
               <div>
                 <div className="font-medium text-gray-900">Fair (0.4-0.6)</div>
                 <div className="text-sm text-gray-600">Limited compatibility</div>
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-red-500 rounded-lg"></div>
+              <div className="w-8 h-8 bg-blue-500 rounded-lg"></div>
               <div>
                 <div className="font-medium text-gray-900">Poor (0.0-0.4)</div>
                 <div className="text-sm text-gray-600">Low compatibility</div>

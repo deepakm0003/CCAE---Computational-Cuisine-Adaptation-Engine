@@ -68,13 +68,13 @@ export default function ChefDashboardPage() {
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-gradient-to-r from-orange-500 to-red-600 rounded-2xl p-8 text-white"
+        className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl p-8 text-white"
       >
         <div className="flex items-center gap-4">
           <ChefHat className="w-12 h-12" />
           <div>
             <h1 className="text-3xl font-bold mb-2">Chef Dashboard</h1>
-            <p className="text-orange-100">
+            <p className="text-blue-100">
               Create innovative cross-cultural recipes with AI-powered adaptation tools
             </p>
           </div>
@@ -90,8 +90,8 @@ export default function ChefDashboardPage() {
       >
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
           <div className="flex items-center justify-between mb-4">
-            <ChefHat className="w-8 h-8 text-orange-600" />
-            <TrendingUp className="w-4 h-4 text-green-600" />
+            <ChefHat className="w-8 h-8 text-blue-600" />
+            <TrendingUp className="w-4 h-4 text-blue-600" />
           </div>
           <div className="text-2xl font-bold text-gray-900">
             {stats.recipesCreated}
@@ -102,7 +102,7 @@ export default function ChefDashboardPage() {
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
           <div className="flex items-center justify-between mb-4">
             <Zap className="w-8 h-8 text-blue-600" />
-            <div className="text-xs text-green-600 font-medium">+8</div>
+            <div className="text-xs text-blue-600 font-medium">+8</div>
           </div>
           <div className="text-2xl font-bold text-gray-900">
             {stats.adaptationsCompleted}
@@ -112,8 +112,8 @@ export default function ChefDashboardPage() {
 
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
           <div className="flex items-center justify-between mb-4">
-            <Star className="w-8 h-8 text-yellow-600" />
-            <div className="text-xs text-green-600 font-medium">+0.2</div>
+            <Star className="w-8 h-8 text-blue-600" />
+            <div className="text-xs text-blue-600 font-medium">+0.2</div>
           </div>
           <div className="text-2xl font-bold text-gray-900">
             {stats.avgRating}
@@ -123,8 +123,8 @@ export default function ChefDashboardPage() {
 
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
           <div className="flex items-center justify-between mb-4">
-            <Clock className="w-8 h-8 text-green-600" />
-            <div className="text-xs text-green-600 font-medium">-2h</div>
+            <Clock className="w-8 h-8 text-blue-600" />
+            <div className="text-xs text-blue-600 font-medium">-2h</div>
           </div>
           <div className="text-2xl font-bold text-gray-900">
             {stats.timeSaved}h
@@ -145,9 +145,9 @@ export default function ChefDashboardPage() {
           <div className="space-y-3">
             <a
               href="/adapt"
-              className="flex items-center gap-3 p-4 bg-orange-50 rounded-lg hover:bg-orange-100 transition-colors"
+              className="flex items-center gap-3 p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
             >
-              <Play className="w-5 h-5 text-orange-600" />
+              <Play className="w-5 h-5 text-blue-600" />
               <div>
                 <p className="font-medium text-gray-900">Create New Adaptation</p>
                 <p className="text-sm text-gray-600">Start a new recipe adaptation</p>
@@ -172,9 +172,9 @@ export default function ChefDashboardPage() {
           <div className="space-y-3">
             <a
               href="/features"
-              className="flex items-center gap-3 p-4 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors"
+              className="flex items-center gap-3 p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
             >
-              <BookOpen className="w-5 h-5 text-purple-600" />
+              <BookOpen className="w-5 h-5 text-blue-600" />
               <div>
                 <p className="font-medium text-gray-900">Tutorial Center</p>
                 <p className="text-sm text-gray-600">Learn advanced techniques</p>
@@ -183,9 +183,9 @@ export default function ChefDashboardPage() {
             
             <a
               href="/analytics"
-              className="flex items-center gap-3 p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors"
+              className="flex items-center gap-3 p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
             >
-              <Award className="w-5 h-5 text-green-600" />
+              <Award className="w-5 h-5 text-blue-600" />
               <div>
                 <p className="font-medium text-gray-900">Achievements</p>
                 <p className="text-sm text-gray-600">Track your progress</p>
@@ -207,14 +207,14 @@ export default function ChefDashboardPage() {
         <div className="space-y-4">
           {recentRecipes.map((recipe, index) => (
             <div key={index} className="flex items-center gap-4 p-4 border border-gray-100 rounded-lg hover:bg-gray-50">
-              <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-red-500 rounded-lg flex items-center justify-center">
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-500 rounded-lg flex items-center justify-center">
                 <ChefHat className="w-6 h-6 text-white" />
               </div>
               <div className="flex-1">
                 <p className="font-medium text-gray-900">{recipe.name}</p>
                 <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">
                   <div className="flex items-center gap-1">
-                    <Star className="w-4 h-4 text-yellow-500" />
+                    <Star className="w-4 h-4 text-blue-500" />
                     {recipe.rating}
                   </div>
                   <div className="flex items-center gap-1">

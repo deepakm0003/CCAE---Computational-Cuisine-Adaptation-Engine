@@ -104,11 +104,11 @@ const AdaptPage = () => {
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6"
+            className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6"
           >
             <div className="flex items-center gap-2">
-              <CheckCircle className="w-5 h-5 text-green-600" />
-              <span className="text-green-800">{success}</span>
+              <CheckCircle className="w-5 h-5 text-blue-600" />
+              <span className="text-blue-800">{success}</span>
             </div>
           </motion.div>
         )}
@@ -117,11 +117,11 @@ const AdaptPage = () => {
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6"
+            className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6"
           >
             <div className="flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5 text-red-600" />
-              <span className="text-red-800">{error}</span>
+              <AlertTriangle className="w-5 h-5 text-blue-600" />
+              <span className="text-blue-800">{error}</span>
             </div>
           </motion.div>
         )}
@@ -256,22 +256,22 @@ const AdaptPage = () => {
                   </p>
                 </div>
 
-                <div className="bg-green-50 rounded-xl p-4">
+                <div className="bg-blue-50 rounded-xl p-4">
                   <div className="flex items-center gap-2 mb-2">
-                    <CheckCircle className="w-4 h-4 text-green-600" />
-                    <span className="text-sm font-medium text-green-900">Identity Preservation</span>
+                    <CheckCircle className="w-4 h-4 text-blue-600" />
+                    <span className="text-sm font-medium text-blue-900">Identity Preservation</span>
                   </div>
-                  <p className="text-sm text-green-700">
+                  <p className="text-sm text-blue-700">
                     Core flavor compounds and cooking techniques are maintained while adapting ingredients.
                   </p>
                 </div>
 
-                <div className="bg-purple-50 rounded-xl p-4">
+                <div className="bg-blue-50 rounded-xl p-4">
                   <div className="flex items-center gap-2 mb-2">
-                    <Globe className="w-4 h-4 text-purple-600" />
-                    <span className="text-sm font-medium text-purple-900">Cultural Authenticity</span>
+                    <Globe className="w-4 h-4 text-blue-600" />
+                    <span className="text-sm font-medium text-blue-900">Cultural Authenticity</span>
                   </div>
-                  <p className="text-sm text-purple-700">
+                  <p className="text-sm text-blue-700">
                     Respects traditional cooking methods and cultural significance of each cuisine.
                   </p>
                 </div>
