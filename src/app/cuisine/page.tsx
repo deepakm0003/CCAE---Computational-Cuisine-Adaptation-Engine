@@ -83,8 +83,7 @@ export default function CuisinePage() {
   };
 
   const filteredCuisines = cuisines.filter(cuisine => {
-    const matchesSearch = cuisine.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         cuisine.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = cuisine.name.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesSearch;
   });
 
@@ -319,17 +318,6 @@ export default function CuisinePage() {
             </motion.div>
           )}
         </motion.div>
-
-        {filteredCuisines.length === 0 && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center py-12"
-          >
-            <Globe className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600">No cuisines found matching your criteria.</p>
-          </motion.div>
-        )}
       </div>
     </div>
   );
