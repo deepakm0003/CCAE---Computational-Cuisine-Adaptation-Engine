@@ -18,7 +18,13 @@ export default function LoginPage() {
     e.preventDefault();
     setError('');
 
-    const success = await login(email, password);
+    // Determine role from email
+    let role = 'student'; // default
+    if (email.includes('chef')) role = 'chef';
+    else if (email.includes('researcher')) role = 'researcher';
+    else if (email.includes('admin')) role = 'admin';
+
+    const success = await login(email, password, role);
     if (success) {
       router.push('/dashboard');
     } else {
