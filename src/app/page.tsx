@@ -215,8 +215,10 @@ export default function Home() {
       
       {/* Navigation */}
       <motion.nav 
-        className="fixed top-0 w-full bg-white/80 backdrop-blur-md z-40 border-b border-gray-200"
-        style={{ translateY }}
+        className="fixed top-0 w-full bg-white/90 backdrop-blur-md z-40 border-b border-gray-200 shadow-sm"
+        initial={{ y: -100 }}
+        animate={{ y: 0 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
       >
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
