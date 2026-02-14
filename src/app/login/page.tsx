@@ -2,32 +2,15 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
-import { 
-  ChefHat, 
-  User, 
-  GraduationCap, 
-  Shield, 
-  Eye, 
-  EyeOff, 
-  AlertTriangle,
-  Brain,
-  BookOpen,
-  Utensils,
-  Microscope,
-  Sparkles,
-  ArrowRight,
-  Loader2
-} from 'lucide-react';
+import { ChefHat, User, GraduationCap, Shield, Eye, EyeOff, AlertTriangle, Brain, ArrowRight } from 'lucide-react';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
-  const [selectedRole, setSelectedRole] = useState('student');
-  const [isHovered, setIsHovered] = useState('');
   const { login, isLoading } = useAuth();
   const router = useRouter();
 
@@ -55,104 +38,123 @@ export default function LoginPage() {
       role: 'chef',
       email: 'chef@ccae.ai',
       title: 'Professional Chef',
-      description: 'Access recipe adaptation tools and culinary analytics',
-      gradient: 'from-orange-500 to-red-600',
-      bgPattern: '🔥',
-      features: ['Recipe Adaptation', 'Flavor Analysis', 'Menu Planning']
+      description: 'Access recipe adaptation tools and culinary analytics'
     },
     {
       icon: User,
       role: 'student',
       email: 'student@ccae.ai',
-      title: 'Culinary Student',
-      description: 'Learn about cross-cultural cuisine and food science',
-      gradient: 'from-blue-500 to-purple-600',
-      bgPattern: '📚',
-      features: ['Interactive Learning', 'Recipe Database', 'Cultural Insights']
+      title: 'Student',
+      description: 'Learn about cross-cultural cuisine and food science'
     },
     {
       icon: GraduationCap,
       role: 'researcher',
       email: 'researcher@ccae.ai',
-      title: 'Food Researcher',
-      description: 'Advanced computational cuisine research and analysis',
-      gradient: 'from-green-500 to-teal-600',
-      bgPattern: '🔬',
-      features: ['Data Analysis', 'Pattern Recognition', 'Research Tools']
+      title: 'Researcher',
+      description: 'Advanced computational cuisine research and analysis'
     },
     {
       icon: Shield,
       role: 'admin',
       email: 'admin@ccae.ai',
-      title: 'System Admin',
-      description: 'System administration and user management',
-      gradient: 'from-purple-500 to-pink-600',
-      bgPattern: '',
-      features: ['User Management', 'System Health', 'Data Oversight']
+      title: 'Administrator',
+      description: 'System administration and user management'
     }
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 flex overflow-hidden">
-      {/* Animated Background Elements */}
-      <div className="absolute inset-0 overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 flex relative overflow-hidden">
+      {/* Go to Home Button */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+        className="absolute top-6 right-6 z-20"
+      >
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => router.push('/')}
+          className="flex items-center gap-2 px-4 py-2 bg-white/90 backdrop-blur-sm border border-blue-200 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 text-blue-600 font-medium"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+          </svg>
+          Go to Home
+        </motion.button>
+      </motion.div>
+
+      {/* Chef-themed Background Elements */}
+      <div className="absolute inset-0 opacity-5">
+        <div className="absolute top-10 left-10 text-8xl">👨‍🍳</div>
+        <div className="absolute top-32 right-20 text-6xl">🔪</div>
+        <div className="absolute bottom-20 left-32 text-7xl">🍳</div>
+        <div className="absolute bottom-40 right-10 text-6xl">🥘</div>
+        <div className="absolute top-1/2 left-20 text-5xl">🌶️</div>
+        <div className="absolute top-1/3 right-32 text-6xl">🍲</div>
+        <div className="absolute bottom-1/3 left-1/2 text-7xl">👨‍🍳</div>
+        <div className="absolute top-20 left-1/3 text-5xl">🔥</div>
+        <div className="absolute bottom-10 right-1/3 text-6xl">🧄</div>
+      </div>
+      
+      {/* Animated Background Pattern */}
+      <div className="absolute inset-0">
         <motion.div
           animate={{ 
-            x: [0, 100, 0], 
-            y: [0, -100, 0],
-            rotate: [0, 180, 360]
+            scale: [1, 1.2, 1],
+            rotate: [0, 180, 360],
+            opacity: [0.05, 0.1, 0.05]
           }}
-          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+          transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
           className="absolute top-20 left-20 w-64 h-64 bg-blue-200/20 rounded-full blur-3xl"
         />
         <motion.div
           animate={{ 
-            x: [0, -100, 0], 
-            y: [0, 100, 0],
-            rotate: [0, -180, -360]
+            scale: [1, 1.3, 1],
+            rotate: [0, -180, -360],
+            opacity: [0.05, 0.1, 0.05]
           }}
-          transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-          className="absolute bottom-20 right-20 w-96 h-96 bg-purple-200/20 rounded-full blur-3xl"
+          transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute bottom-20 right-20 w-80 h-80 bg-blue-300/20 rounded-full blur-3xl"
         />
         <motion.div
           animate={{ 
-            scale: [1, 1.2, 1],
-            opacity: [0.3, 0.5, 0.3]
+            scale: [1, 1.1, 1],
+            opacity: [0.08, 0.12, 0.08]
           }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-orange-200/20 rounded-full blur-3xl"
+          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-blue-100/30 rounded-full blur-3xl"
         />
       </div>
 
       {/* Left Side - Login Form */}
       <motion.div
-        initial={{ opacity: 0, x: -100 }}
+        initial={{ opacity: 0, x: -50 }}
         animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
         className="w-full lg:w-1/2 flex items-center justify-center p-8 relative z-10"
       >
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.6 }}
+          transition={{ delay: 0.2 }}
           className="w-full max-w-md"
         >
-          {/* Logo and Title */}
           <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
+            initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.4, duration: 0.5, type: "spring" }}
+            transition={{ duration: 0.5 }}
             className="text-center mb-8"
           >
             <motion.div
               whileHover={{ scale: 1.1, rotate: 5 }}
               whileTap={{ scale: 0.95 }}
-              className="w-24 h-24 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl relative overflow-hidden"
+              className="w-24 h-24 bg-blue-500 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl relative overflow-hidden"
             >
               <motion.div
                 animate={{ rotate: 360 }}
                 transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-                className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent"
+                className="absolute inset-0 bg-white/20"
               />
               <Brain className="w-12 h-12 text-white relative z-10" />
               <motion.div
@@ -162,132 +164,62 @@ export default function LoginPage() {
               />
             </motion.div>
             <motion.h1 
-              className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2"
+              className="text-4xl font-bold text-blue-600 mb-2"
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.5 }}
+              transition={{ delay: 0.3 }}
             >
               Welcome to CCAE
             </motion.h1>
             <motion.p 
-              className="text-gray-600 text-lg"
+              className="text-gray-700 text-lg font-medium"
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.6 }}
+              transition={{ delay: 0.4 }}
             >
               Computational Cuisine Adaptation Engine
             </motion.p>
           </motion.div>
 
-          {/* Role Selection */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.7 }}
-            className="mb-6"
-          >
-            <label className="block text-sm font-semibold text-gray-700 mb-3">Select Your Role</label>
-            <div className="grid grid-cols-2 gap-3">
-              {userTypes.map((userType, index) => (
-                <motion.div
-                  key={userType.role}
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.8 + index * 0.1 }}
-                  whileHover={{ scale: 1.05, y: -2 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => {
-                    setSelectedRole(userType.role);
-                    setEmail(userType.email);
-                    setPassword('password');
-                  }}
-                  className={`relative p-4 rounded-xl cursor-pointer transition-all duration-300 ${
-                    selectedRole === userType.role
-                      ? 'bg-gradient-to-r ' + userType.gradient + ' text-white shadow-lg'
-                      : 'bg-white/80 backdrop-blur-sm border border-gray-200 hover:border-blue-300 hover:shadow-md'
-                  }`}
-                  onMouseEnter={() => setIsHovered(userType.role)}
-                  onMouseLeave={() => setIsHovered('')}
-                >
-                  <div className="text-2xl mb-2">{userType.bgPattern}</div>
-                  <motion.div
-                    animate={{ rotate: isHovered === userType.role ? [0, 10, -10, 0] : 0 }}
-                    transition={{ duration: 0.5 }}
-                  >
-                    <userType.icon className={`w-6 h-6 mb-2 ${selectedRole === userType.role ? 'text-white' : 'text-blue-600'}`} />
-                  </motion.div>
-                  <h3 className={`font-semibold text-sm ${selectedRole === userType.role ? 'text-white' : 'text-gray-900'}`}>
-                    {userType.title}
-                  </h3>
-                  <AnimatePresence>
-                    {isHovered === userType.role && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: "auto" }}
-                        exit={{ opacity: 0, height: 0 }}
-                        className="mt-2 space-y-1"
-                      >
-                        {userType.features.map((feature, idx) => (
-                          <motion.div
-                            key={idx}
-                            initial={{ opacity: 0, x: -10 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: idx * 0.1 }}
-                            className={`text-xs ${selectedRole === userType.role ? 'text-white/90' : 'text-gray-600'}`}
-                          >
-                            • {feature}
-                          </motion.div>
-                        ))}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
-
-          {/* Login Form */}
-          <motion.form
-            onSubmit={handleSubmit}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1 }}
-            className="space-y-5"
-          >
+          <form onSubmit={handleSubmit} className="space-y-6">
             <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.3 }}
               whileFocus={{ scale: 1.02 }}
-              className="relative"
             >
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Email Address</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                <User className="w-4 h-4 text-blue-500" />
+                Email Address
+              </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <User className="h-5 w-5 text-gray-400" />
-                </div>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/80 backdrop-blur-sm transition-all duration-300"
-                  placeholder={userTypes.find(u => u.role === selectedRole)?.email || "Enter your email"}
+                  className="w-full px-4 py-3 border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white/95 backdrop-blur-sm transition-all duration-300 text-gray-900 placeholder-gray-500"
+                  placeholder="Enter your email"
                   required
                 />
               </div>
             </motion.div>
 
             <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.4 }}
               whileFocus={{ scale: 1.02 }}
-              className="relative"
             >
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Password</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                <Shield className="w-4 h-4 text-blue-500" />
+                Password
+              </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Shield className="h-5 w-5 text-gray-400" />
-                </div>
                 <input
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/80 backdrop-blur-sm transition-all duration-300"
+                  className="w-full px-4 py-3 border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white/95 backdrop-blur-sm transition-all duration-300 pr-12 text-gray-900 placeholder-gray-500"
                   placeholder="Enter your password"
                   required
                 />
@@ -296,107 +228,140 @@ export default function LoginPage() {
                   onClick={() => setShowPassword(!showPassword)}
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-blue-400 hover:text-blue-600"
                 >
-                  {showPassword ? (
-                    <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600" />
-                  ) : (
-                    <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600" />
-                  )}
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </motion.button>
               </div>
             </motion.div>
 
-            <AnimatePresence>
-              {error && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                  className="p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3"
-                >
-                  <AlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0" />
-                  <p className="text-red-600 text-sm">{error}</p>
-                </motion.div>
-              )}
-            </AnimatePresence>
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                className="p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3"
+              >
+                <AlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0" />
+                <p className="text-red-600 text-sm">{error}</p>
+              </motion.div>
+            )}
 
             <motion.button
               type="submit"
               disabled={isLoading}
               whileHover={{ scale: 1.02, y: -2 }}
               whileTap={{ scale: 0.98 }}
-              className="w-full py-4 px-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 relative overflow-hidden"
+              className="w-full py-4 px-4 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 relative overflow-hidden"
             >
-              <motion.div
-                animate={{ x: isLoading ? [0, 100] : 0 }}
-                transition={{ repeat: isLoading ? Infinity : 0, duration: 1 }}
-                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
-              />
-              {isLoading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  Signing in...
-                </span>
-              ) : (
-                <span className="flex items-center justify-center gap-2">
-                  Sign In
-                  <ArrowRight className="w-5 h-5" />
-                </span>
-              )}
+              {isLoading ? 'Signing in...' : 'Sign In'}
             </motion.button>
-          </motion.form>
+          </form>
 
-          {/* Demo Info */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 1.2 }}
-            className="mt-8 p-4 bg-white/60 backdrop-blur-sm rounded-xl border border-gray-200"
+            transition={{ delay: 0.5 }}
+            className="mt-8 p-6 bg-white/80 backdrop-blur-sm rounded-xl border border-blue-200 shadow-lg"
           >
-            <div className="flex items-center gap-2 mb-2">
-              <Sparkles className="w-4 h-4 text-yellow-500" />
-              <p className="text-sm font-semibold text-gray-700">Demo Access</p>
+            <div className="flex items-center gap-2 mb-4">
+              <ChefHat className="w-5 h-5 text-blue-500" />
+              <p className="text-sm font-semibold text-gray-700">Quick Access - Demo Accounts</p>
             </div>
-            <p className="text-xs text-gray-600">Use password: <code className="bg-gray-100 px-2 py-1 rounded">password</code></p>
+            <div className="space-y-3">
+              {userTypes.map((userType) => (
+                <motion.div
+                  key={userType.role}
+                  whileHover={{ scale: 1.02, x: 5 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="flex items-center gap-3 p-3 bg-white rounded-xl cursor-pointer hover:shadow-md transition-all duration-300 border border-blue-100"
+                  onClick={() => {
+                    setEmail(userType.email);
+                    setPassword('password');
+                  }}
+                >
+                  <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
+                    <userType.icon className="w-4 h-4 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-gray-900">{userType.title}</p>
+                    <p className="text-xs text-gray-500">{userType.email}</p>
+                  </div>
+                  <ArrowRight className="w-4 h-4 text-blue-400" />
+                </motion.div>
+              ))}
+            </div>
+            <p className="text-xs text-gray-500 mt-3 text-center">🔐 Password: password</p>
           </motion.div>
         </motion.div>
       </motion.div>
 
-      {/* Right Side - Visual Showcase */}
+      {/* Right Side - Visual */}
       <motion.div
         initial={{ opacity: 0, x: 100 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.8, ease: "easeOut" }}
-        className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 items-center justify-center p-8 relative overflow-hidden"
+        className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-500 to-blue-600 items-center justify-center p-8 relative overflow-hidden"
       >
         {/* Animated Background Pattern */}
         <div className="absolute inset-0">
-          {[...Array(6)].map((_, i) => (
-            <motion.div
-              key={i}
-              initial={{ scale: 0, rotate: Math.random() * 360 }}
-              animate={{ 
-                scale: [0, 1, 0],
-                rotate: [0, 180, 360],
-                x: [0, Math.random() * 200 - 100],
-                y: [0, Math.random() * 200 - 100]
-              }}
-              transition={{ 
-                duration: 10 + Math.random() * 10, 
-                repeat: Infinity, 
-                delay: Math.random() * 5,
-                ease: "easeInOut"
-              }}
-              className="absolute bg-white/10 rounded-full backdrop-blur-sm"
-              style={{
-                width: Math.random() * 100 + 50,
-                height: Math.random() * 100 + 50,
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-              }}
-            />
-          ))}
+          <motion.div
+            animate={{ 
+              scale: [1, 1.5, 1],
+              rotate: [0, 180, 360],
+              opacity: [0.1, 0.3, 0.1]
+            }}
+            transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute top-10 left-10 w-48 h-48 bg-white/20 rounded-full blur-2xl"
+          />
+          <motion.div
+            animate={{ 
+              scale: [1, 1.3, 1],
+              rotate: [0, -180, -360],
+              opacity: [0.1, 0.25, 0.1]
+            }}
+            transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute bottom-10 right-10 w-64 h-64 bg-white/20 rounded-full blur-2xl"
+          />
+          <motion.div
+            animate={{ 
+              scale: [1, 1.2, 1],
+              opacity: [0.15, 0.35, 0.15]
+            }}
+            transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-white/20 rounded-full blur-2xl"
+          />
+        </div>
+
+        {/* Floating Chef Emojis */}
+        <div className="absolute inset-0 opacity-20">
+          <motion.div
+            animate={{ y: [0, -20, 0], rotate: [0, 10, -10, 0] }}
+            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute top-20 left-20 text-6xl"
+          >
+            👨‍🍳
+          </motion.div>
+          <motion.div
+            animate={{ y: [0, -15, 0], rotate: [0, -10, 10, 0] }}
+            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+            className="absolute bottom-32 right-16 text-5xl"
+          >
+            🍳
+          </motion.div>
+          <motion.div
+            animate={{ y: [0, -25, 0], rotate: [0, 15, -15, 0] }}
+            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+            className="absolute top-1/3 right-32 text-4xl"
+          >
+            🔥
+          </motion.div>
+          <motion.div
+            animate={{ y: [0, -18, 0], rotate: [0, -15, 15, 0] }}
+            transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
+            className="absolute bottom-20 left-32 text-5xl"
+          >
+            🥘
+          </motion.div>
         </div>
 
         <motion.div
@@ -447,7 +412,7 @@ export default function LoginPage() {
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.9 }}
           >
-            Where tradition meets innovation through AI-powered recipe adaptation
+            Where tradition meets technology through AI-powered recipe adaptation
           </motion.p>
 
           <motion.div 
@@ -464,7 +429,7 @@ export default function LoginPage() {
                 animate={{ rotate: [0, 10, -10, 0] }}
                 transition={{ duration: 4, repeat: Infinity }}
               >
-                <Utensils className="w-10 h-10 mb-3 mx-auto text-yellow-300" />
+                <ChefHat className="w-10 h-10 mb-3 mx-auto text-yellow-300" />
               </motion.div>
               <h3 className="font-bold text-lg mb-2">Chef Tools</h3>
               <p className="text-sm opacity-80">Professional recipe adaptation</p>
@@ -478,7 +443,7 @@ export default function LoginPage() {
                 animate={{ rotate: [0, -10, 10, 0] }}
                 transition={{ duration: 4, repeat: Infinity }}
               >
-                <Microscope className="w-10 h-10 mb-3 mx-auto text-yellow-300" />
+                <GraduationCap className="w-10 h-10 mb-3 mx-auto text-yellow-300" />
               </motion.div>
               <h3 className="font-bold text-lg mb-2">Research</h3>
               <p className="text-sm opacity-80">Advanced food science analysis</p>
@@ -516,10 +481,8 @@ export default function LoginPage() {
               <div className="text-sm opacity-80">Accuracy</div>
             </motion.div>
           </motion.div>
-            </div>
-          </div>
         </motion.div>
-      </div>
+      </motion.div>
     </div>
   );
 }

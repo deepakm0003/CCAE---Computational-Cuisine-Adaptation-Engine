@@ -44,10 +44,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = (email: string, password: string, role: string): boolean => {
     const mockUsers = {
-      chef: { email: 'chef@ccae.ai', password: 'chef123', name: 'Chef Anderson' },
-      student: { email: 'student@ccae.ai', password: 'student123', name: 'Student Johnson' },
-      researcher: { email: 'researcher@ccae.ai', password: 'research123', name: 'Dr. Smith' },
-      admin: { email: 'admin@ccae.ai', password: 'admin123', name: 'Admin Davis' }
+      chef: { email: 'chef@ccae.ai', password: 'password', name: 'Chef Anderson' },
+      student: { email: 'student@ccae.ai', password: 'password', name: 'Student Johnson' },
+      researcher: { email: 'researcher@ccae.ai', password: 'password', name: 'Dr. Smith' },
+      admin: { email: 'admin@ccae.ai', password: 'password', name: 'Admin Davis' }
     };
 
     const mockUser = mockUsers[role as keyof typeof mockUsers];
