@@ -117,20 +117,20 @@ export default function AdaptResultPage() {
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Adaptation Metrics</h3>
             <div className="space-y-3">
               <div className="flex justify-between">
-                <span className="text-gray-600">Identity Preservation</span>
-                <span className="font-medium">{result.identity_score || 85}%</span>
+                <span className="text-gray-600">Identity Score</span>
+                <span className="font-medium">{((result.scores?.identity_score || 0) * 100).toFixed(1)}%</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Compatibility Score</span>
-                <span className="font-medium">{result.compatibility_score || 78}%</span>
+                <span className="font-medium">{((result.scores?.compatibility_score || 0) * 100).toFixed(1)}%</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Adaptation Distance</span>
-                <span className="font-medium">{result.adaptation_distance || 0.35}</span>
+                <span className="font-medium">{(result.scores?.adaptation_distance || 0).toFixed(3)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Processing Time</span>
-                <span className="font-medium">{result.processing_time || 1.2}s</span>
+                <span className="text-gray-600">Multi-Objective Score</span>
+                <span className="font-medium">{((result.scores?.multi_objective_score || 0) * 100).toFixed(1)}%</span>
               </div>
             </div>
           </div>
@@ -140,19 +140,19 @@ export default function AdaptResultPage() {
             <div className="space-y-3">
               <div className="flex justify-between">
                 <span className="text-gray-600">Original Ingredients</span>
-                <span className="font-medium">{result.original_ingredients || 12}</span>
+                <span className="font-medium">{Array.isArray(result.original_ingredients) ? result.original_ingredients.length : 0}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Adapted Ingredients</span>
-                <span className="font-medium">{result.adapted_ingredients || 11}</span>
+                <span className="font-medium">{Array.isArray(result.adapted_ingredients) ? result.adapted_ingredients.length : 0}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Substitutions Made</span>
-                <span className="font-medium">{result.substitutions || 3}</span>
+                <span className="font-medium">{result.substitution_count || 0}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Preserved Core</span>
-                <span className="font-medium">{result.preserved_core || 9}</span>
+                <span className="text-gray-600">Intensity</span>
+                <span className="font-medium">{((result.intensity || 0.5) * 100).toFixed(0)}%</span>
               </div>
             </div>
           </div>
@@ -165,7 +165,7 @@ export default function AdaptResultPage() {
           transition={{ delay: 0.4 }}
           className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-8"
         >
-          <h3 className="text-lg font-semibold text-gray-900 mb-6">Adapted Recipe</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-6">Adapted Recipe: {result.recipe_name}</h3>
           
           <div className="prose max-w-none">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -173,17 +173,14 @@ export default function AdaptResultPage() {
                 <h4 className="font-semibold text-gray-900 mb-3">Original Recipe</h4>
                 <div className="bg-gray-50 rounded-lg p-4">
                   <p className="text-sm text-gray-600 mb-2">
-                    <strong>Cuisine:</strong> {result.original_cuisine || 'Italian'}
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    <strong>Name:</strong> {result.original_name || 'Classic Margherita Pizza'}
+                    <strong>Cuisine:</strong> {result.source_cuisine || 'Unknown'}
                   </p>
                   <div className="mt-3">
                     <strong className="text-sm">Ingredients:</strong>
                     <ul className="text-sm text-gray-600 mt-1 space-y-1">
-                      {(result.original_ingredients_list || ['Flour', 'Tomatoes', 'Mozzarella', 'Basil', 'Olive Oil']).map((ing: string, i: number) => (
+                      {Array.isArray(result.original_ingredients) ? result.original_ingredients.map((ing: string, i: number) => (
                         <li key={i}>• {ing}</li>
-                      ))}
+                      )) : <li>No ingredients</li>}
                     </ul>
                   </div>
                 </div>
@@ -193,17 +190,14 @@ export default function AdaptResultPage() {
                 <h4 className="font-semibold text-gray-900 mb-3">Adapted Recipe</h4>
                 <div className="bg-blue-50 rounded-lg p-4">
                   <p className="text-sm text-gray-600 mb-2">
-                    <strong>Cuisine:</strong> {result.target_cuisine || 'Japanese'}
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    <strong>Name:</strong> {result.adapted_name || 'Japanese-style Margherita'}
+                    <strong>Cuisine:</strong> {result.target_cuisine || 'Unknown'}
                   </p>
                   <div className="mt-3">
                     <strong className="text-sm">Ingredients:</strong>
                     <ul className="text-sm text-gray-600 mt-1 space-y-1">
-                      {(result.adapted_ingredients_list || ['Rice Flour', 'Tomatoes', 'Mozzarella', 'Shiso', 'Sesame Oil']).map((ing: string, i: number) => (
+                      {Array.isArray(result.adapted_ingredients) ? result.adapted_ingredients.map((ing: string, i: number) => (
                         <li key={i}>• {ing}</li>
-                      ))}
+                      )) : <li>No ingredients</li>}
                     </ul>
                   </div>
                 </div>
@@ -211,6 +205,35 @@ export default function AdaptResultPage() {
             </div>
           </div>
         </motion.div>
+
+        {/* Substitutions */}
+        {Array.isArray(result.substitutions) && result.substitutions.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-8"
+          >
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">ML-Powered Substitutions</h3>
+            <div className="space-y-4">
+              {result.substitutions.map((sub: any, i: number) => (
+                <div key={i} className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-red-600 line-through">{sub.original}</span>
+                      <span className="text-gray-400">→</span>
+                      <span className="text-green-600 font-medium">{sub.replacement}</span>
+                    </div>
+                    <p className="text-sm text-gray-500 mt-1">{sub.reason}</p>
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    Confidence: {((sub.confidence || 0) * 100).toFixed(0)}%
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
 
         {/* Actions */}
         <motion.div

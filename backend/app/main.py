@@ -16,6 +16,8 @@ from app.api.routes.transferability import router as transferability_router
 from app.api.routes.ml import router as ml_router
 from app.api.routes.recompute import router as recompute_router
 from app.api.routes.mvp import router as mvp_router
+from app.api.routes.postman_routes import router as postman_router
+from app.api.routes.external_proxy import router as external_proxy_router
 
 app = FastAPI(
     title="CCAE - Computational Cuisine Adaptation Engine",
@@ -44,6 +46,8 @@ app.include_router(transferability_router)
 app.include_router(ml_router)
 app.include_router(recompute_router)
 app.include_router(mvp_router)
+app.include_router(postman_router)
+app.include_router(external_proxy_router)
 
 
 @app.on_event("startup")

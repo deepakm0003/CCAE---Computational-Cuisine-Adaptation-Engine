@@ -50,19 +50,30 @@ export default function DataUploadPage() {
   };
 
   const handleFileUpload = async (file: File, type: 'recipes' | 'molecules') => {
-    const fileId = Date.now().toString();
-    
-    // Add file to store
-    const fileItem = {
-      id: fileId,
-      name: file.name,
-      size: file.size,
-      type,
-      status: 'pending' as const,
-      progress: 0
-    };
+    // After FileUploadCard successfully uploads the file it calls this handler.
+    // Refresh relevant data so the newly uploaded records appear in the UI.
+    try {
+      setError(null);
+      setUploading(true);
 
-    // This would be handled by the FileUploadCard component
+      if (type === 'recipes') {
+        // Re-fetch recipes and update the system stats count
+        const recipes = await ccaeApi.getRecipes();
+        setSystemStats((prev: any) => ({
+          ...prev,
+          totalRecipes: Array.isArray(recipes) ? recipes.length : (prev?.totalRecipes ?? 0)
+        }));
+      } else {
+        // For molecules, refresh overall system stats
+        await fetchSystemStats();
+      }
+    } catch (err) {
+      console.error('Failed to refresh data after upload:', err);
+      const message = handleApiError(err);
+      setError(message);
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleTestConnection = async () => {
@@ -232,8 +243,8 @@ export default function DataUploadPage() {
 
             <FileUploadCard
               title="Molecular Data Upload"
-              description="Upload JSON files containing molecular compound data and flavor profiles."
-              acceptType=".json"
+              description="Upload CSV files containing molecular compound data and flavor profiles."
+              acceptType=".csv"
               fileType="molecules"
               onUpload={handleFileUpload}
             />

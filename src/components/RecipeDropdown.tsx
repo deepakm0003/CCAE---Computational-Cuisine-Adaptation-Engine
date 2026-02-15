@@ -65,6 +65,8 @@ const RecipeDropdown = ({ onPreview }: RecipeDropdownProps) => {
   const handleRecipeSelect = (recipe: Recipe) => {
     setSelectedRecipe(recipe);
     localStorage.setItem('selectedRecipe', recipe.id.toString());
+    // Also store the source cuisine for adaptation
+    localStorage.setItem('sourceCuisine', recipe.cuisine);
     
     // Create summary
     const summaryData: RecipeSummary = {

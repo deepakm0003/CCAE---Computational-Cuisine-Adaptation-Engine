@@ -23,6 +23,10 @@ const api: AxiosInstance = axios.create({
 // Request interceptor
 api.interceptors.request.use(
   (config) => {
+    // Remove Content-Type for FormData so browser can set it with boundary
+    if (config.data instanceof FormData) {
+      delete config.headers['Content-Type'];
+    }
     if (process.env.NODE_ENV === 'development') {
       console.log(`🚀 API Request: ${config.method?.toUpperCase()} ${config.url}`);
     }
@@ -229,12 +233,7 @@ export const getTransferability = async (): Promise<TransferabilityResponse> => 
 export const uploadRecipes = async (file: File): Promise<UploadResponse> => {
   const formData = new FormData();
   formData.append('file', file);
-  
-  const response = await api.post('/mvp/upload/recipes', formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-  });
+  const response = await api.post('/mvp/upload/recipes', formData);
   return response.data;
 };
 
@@ -242,12 +241,7 @@ export const uploadRecipes = async (file: File): Promise<UploadResponse> => {
 export const uploadMolecules = async (file: File): Promise<UploadResponse> => {
   const formData = new FormData();
   formData.append('file', file);
-  
-  const response = await api.post('/mvp/upload/molecules', formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-  });
+  const response = await api.post('/mvp/upload/molecules', formData);
   return response.data;
 };
 

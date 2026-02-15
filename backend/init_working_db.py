@@ -78,7 +78,7 @@ class CuisineEmbedding(Base):
 
 class AdaptationResult(Base):
     __tablename__ = "adaptation_results"
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True)      
     recipe_id = Column(Integer, ForeignKey("recipes.id"), nullable=False)
     source_cuisine = Column(String(100), nullable=False)
     target_cuisine = Column(String(100), nullable=False)

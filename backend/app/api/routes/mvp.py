@@ -5,6 +5,7 @@ Simplified endpoints that work with the MVP services.
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Query
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 from typing import List, Dict, Any, Optional
 import pandas as pd
 import json
@@ -13,7 +14,7 @@ from io import StringIO
 from app.core.database import get_db
 from app.models.cuisine import Cuisine
 from app.models.recipe import Recipe
-from app.models.ingredient import Ingredient
+from app.models.ingredient import Ingredient, RecipeIngredient
 from app.models.molecule import FlavorMolecule
 from app.models.adaptation import AdaptationResult
 from app.services.mvp_identity import compute_cuisine_identity, compute_all_cuisine_identities
@@ -67,7 +68,7 @@ def health_check(db: Session = Depends(get_db)):
     """Simple health check for MVP."""
     try:
         # Test database connection
-        db.execute("SELECT 1")
+        db.execute(text("SELECT 1"))
         
         # Get basic stats
         cuisine_count = db.query(Cuisine).count()
@@ -239,7 +240,7 @@ def list_adaptations(
 
 
 @router.post("/upload/recipes", response_model=UploadResponse)
-def upload_recipes(file: UploadFile = File(...), db: Session = Depends(get_db)):
+async def upload_recipes(file: UploadFile = File(...), db: Session = Depends(get_db)):
     """Upload recipes from CSV file."""
     if not file.filename.endswith('.csv'):
         raise HTTPException(status_code=400, detail="Only CSV files are supported")
@@ -322,7 +323,7 @@ def upload_recipes(file: UploadFile = File(...), db: Session = Depends(get_db)):
 
 
 @router.post("/upload/molecules", response_model=UploadResponse)
-def upload_molecules(file: UploadFile = File(...), db: Session = Depends(get_db)):
+async def upload_molecules(file: UploadFile = File(...), db: Session = Depends(get_db)):
     """Upload molecule data from CSV file."""
     if not file.filename.endswith('.csv'):
         raise HTTPException(status_code=400, detail="Only CSV files are supported")
@@ -389,6 +390,49 @@ def upload_molecules(file: UploadFile = File(...), db: Session = Depends(get_db)
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
+
+
+# Preview endpoints for MVP
+@router.get("/preview/compatibility")
+def preview_compatibility(
+    source_cuisine: str = Query(..., description="Source cuisine name"),
+    target_cuisine: str = Query(..., description="Target cuisine name"),
+    db: Session = Depends(get_db)
+):
+    """Preview compatibility between two cuisines."""
+    from app.services.preview import get_compatibility_preview
+    result = get_compatibility_preview(db, source_cuisine, target_cuisine)
+    if "error" in result:
+        raise HTTPException(status_code=404, detail=result["error"])
+    return result
+
+
+@router.post("/preview/adaptation-impact")
+def preview_adaptation_impact(
+    request: dict,
+    db: Session = Depends(get_db)
+):
+    """Estimate adaptation impact before running full adaptation."""
+    from app.services.preview import get_adaptation_impact
+    source_cuisine = request.get("source_cuisine", "")
+    target_cuisine = request.get("target_cuisine", "")
+    intensity = request.get("intensity", 0.5)
+    result = get_adaptation_impact(db, source_cuisine, target_cuisine, intensity)
+    if "error" in result:
+        raise HTTPException(status_code=404, detail=result["error"])
+    return result
+
+
+@router.post("/preview/ingredient-risk")
+def preview_ingredient_risk(
+    request: dict,
+    db: Session = Depends(get_db)
+):
+    """Assess risk level of ingredients for adaptation."""
+    from app.services.preview import get_ingredient_risk
+    target_cuisine = request.get("target_cuisine", "")
+    result = get_ingredient_risk(db, target_cuisine)
+    return {"cuisine": target_cuisine, "risk_assessment": result}
 
 
 @router.get("/formulas")

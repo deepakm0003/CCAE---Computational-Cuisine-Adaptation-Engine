@@ -28,7 +28,14 @@ const CuisineSelector = ({ onPreview }: CuisineSelectorProps) => {
       const response = await ccaeApi.getCuisines();
       
       if (response && response.length > 0) {
-        setCuisines(response);
+        // Transform string array to Cuisine objects
+        const cuisineObjects = response.map((c: string | Cuisine) => {
+          if (typeof c === 'string') {
+            return { name: c };
+          }
+          return c;
+        });
+        setCuisines(cuisineObjects);
       } else {
         setError('No cuisines found. Upload data and compute identities first.');
       }
