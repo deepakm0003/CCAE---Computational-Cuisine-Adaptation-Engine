@@ -200,7 +200,9 @@ export const adaptRecipe = async (request: AdaptationRequest): Promise<Adaptatio
 
 // Get Adaptations
 export const getAdaptations = async (params?: { limit?: number }): Promise<AdaptationResponse[]> => {
-  const response = await api.get('/mvp/adaptations', { params });
+  // Backend has max limit of 100
+  const safeParams = params ? { ...params, limit: Math.min(params.limit || 100, 100) } : { limit: 100 };
+  const response = await api.get('/mvp/adaptations', { params: safeParams });
   return response.data;
 };
 

@@ -22,9 +22,11 @@ import {
   Database,
   Shield,
   Clock,
-  Activity
+  Activity,
+  Beaker
 } from 'lucide-react';
 import ccaeApi, { handleApiError } from '@/lib/api';
+import foodscopeApi, { searchIngredients as searchFlavorDB, testConnection as testFlavorDBConnection } from '@/lib/foodscopeApi';
 
 interface ApiKeyConfig {
   id: string;
@@ -56,6 +58,7 @@ export default function ApiKeysPage() {
   const [ingredientQuery, setIngredientQuery] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
+  const [searchPerformed, setSearchPerformed] = useState(false);
   
   // API Keys list
   const [apiKeys, setApiKeys] = useState<ApiKeyConfig[]>([
@@ -119,25 +122,24 @@ export default function ApiKeysPage() {
   const handleTestFoodscopeConnection = async () => {
     setFoodscopeLoading(true);
     try {
-      // For now, we'll simulate a connection test
-      // In production, this would make a real API call to FoodScope
-      if (foodscopeApiKey && foodscopeApiUrl) {
-        // Simulated successful connection
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        setFoodscopeStatus({
-          connected: true,
-          message: 'FoodScope API connection successful'
-        });
-      } else {
-        setFoodscopeStatus({
-          connected: false,
-          message: 'Please enter API key and URL to connect'
-        });
+      // Save config first so the API module can use it
+      if (foodscopeApiUrl) {
+        localStorage.setItem('foodscope_api_url', foodscopeApiUrl);
       }
-    } catch (err) {
+      if (foodscopeApiKey) {
+        localStorage.setItem('foodscope_api_key', foodscopeApiKey);
+      }
+      
+      // Test real connection to FlavorDB
+      const result = await testFlavorDBConnection();
+      setFoodscopeStatus({
+        connected: result.connected,
+        message: result.message
+      });
+    } catch (err: any) {
       setFoodscopeStatus({
         connected: false,
-        message: 'Failed to connect to FoodScope API'
+        message: `Failed to connect: ${err.message || 'Unknown error'}`
       });
     } finally {
       setFoodscopeLoading(false);
@@ -155,20 +157,143 @@ export default function ApiKeysPage() {
     if (!ingredientQuery.trim()) return;
     
     setSearchLoading(true);
+    setSearchPerformed(true);
     try {
-      // In production, this would search FoodScope API
-      // For now, we'll show placeholder results
-      await new Promise(resolve => setTimeout(resolve, 500));
-      setSearchResults([
-        { name: ingredientQuery, category: 'Spice', molecules: 45, compounds: 12 },
-        { name: `${ingredientQuery} extract`, category: 'Extract', molecules: 23, compounds: 8 }
-      ]);
+      const query = ingredientQuery.toLowerCase().trim();
+      const results: any[] = [];
+      
+      // First, search FlavorDB if connected
+      if (foodscopeStatus?.connected) {
+        try {
+          const flavorDBResults = await searchFlavorDB(query);
+          if (flavorDBResults && flavorDBResults.length > 0) {
+            flavorDBResults.forEach(item => {
+              results.push({
+                type: 'flavordb',
+                source: 'FlavorDB',
+                id: item.id,
+                name: item.name,
+                category: item.category,
+                flavorProfile: item.flavorProfile,
+                molecules: item.molecules,
+                matchType: 'flavordb',
+                ingredientCount: item.molecules?.length || 0
+              });
+            });
+          }
+        } catch (err) {
+          console.warn('FlavorDB search failed:', err);
+        }
+      }
+      
+      // Then search CCAE backend recipes
+      const recipes = await ccaeApi.getRecipes();
+      
+      // Flavor keywords mapping
+      const flavorKeywords: Record<string, string[]> = {
+        'spicy': ['chili', 'pepper', 'cayenne', 'jalapeño', 'habanero', 'sriracha', 'hot sauce', 'paprika', 'cumin', 'curry', 'spices', 'garam masala'],
+        'sweet': ['sugar', 'honey', 'maple', 'chocolate', 'caramel', 'vanilla', 'cinnamon', 'fruit', 'berry', 'apple', 'mango', 'pineapple'],
+        'savory': ['soy sauce', 'miso', 'mushroom', 'parmesan', 'bacon', 'anchovy', 'worcestershire', 'tomato paste', 'beef', 'pork'],
+        'umami': ['soy sauce', 'miso', 'fish sauce', 'mushroom', 'parmesan', 'tomato', 'anchovy', 'seaweed', 'dashi', 'oyster sauce'],
+        'sour': ['lemon', 'lime', 'vinegar', 'tamarind', 'yogurt', 'buttermilk', 'citrus', 'pickle'],
+        'bitter': ['coffee', 'cocoa', 'kale', 'arugula', 'radicchio', 'beer', 'hoppy'],
+        'fresh': ['mint', 'basil', 'cilantro', 'parsley', 'lemon', 'lime', 'cucumber', 'lettuce', 'fresh'],
+        'aromatic': ['garlic', 'onion', 'ginger', 'cinnamon', 'cardamom', 'clove', 'star anise', 'lemongrass', 'galangal'],
+        'creamy': ['cream', 'milk', 'butter', 'cheese', 'coconut milk', 'yogurt', 'mayonnaise', 'heavy cream'],
+        'smoky': ['smoked', 'bacon', 'chipotle', 'paprika', 'bbq', 'grilled', 'charred']
+      };
+      
+      // Check if query is a flavor term
+      const flavorIngredients = flavorKeywords[query] || [];
+      const isFlavorSearch = flavorIngredients.length > 0;
+      
+      // Find recipes containing the search term in ingredients, recipe name, cuisine, OR flavor
+      const matchingRecipes = recipes.map((recipe: any) => {
+        const ingredients = recipe.ingredients || [];
+        const matchedIngredient = ingredients.find((ing: string) => 
+          ing.toLowerCase().includes(query)
+        );
+        const matchesName = recipe.name?.toLowerCase().includes(query);
+        const matchesCuisine = recipe.cuisine?.toLowerCase().includes(query);
+        
+        // Check for flavor match
+        let matchedFlavor: string | null = null;
+        let flavorMatchedIngredient: string | null = null;
+        
+        if (isFlavorSearch) {
+          for (const ing of ingredients) {
+            const ingLower = ing.toLowerCase();
+            for (const flavorIng of flavorIngredients) {
+              if (ingLower.includes(flavorIng)) {
+                matchedFlavor = query;
+                flavorMatchedIngredient = ing;
+                break;
+              }
+            }
+            if (matchedFlavor) break;
+          }
+        }
+        
+        // Always detect flavors from ingredients for display
+        const detectedFlavors: string[] = [];
+        for (const [flavor, keywords] of Object.entries(flavorKeywords)) {
+          for (const ing of ingredients) {
+            if (keywords.some(k => ing.toLowerCase().includes(k))) {
+              if (!detectedFlavors.includes(flavor)) {
+                detectedFlavors.push(flavor);
+                break;
+              }
+            }
+          }
+        }
+        
+        const hasMatch = matchedIngredient || matchesName || matchesCuisine || matchedFlavor;
+        
+        return {
+          recipe,
+          matchedIngredient,
+          matchesName,
+          matchesCuisine,
+          matchedFlavor,
+          flavorMatchedIngredient,
+          detectedFlavors,
+          matchType: matchesName ? 'name' : (matchesCuisine ? 'cuisine' : (matchedIngredient ? 'ingredient' : (matchedFlavor ? 'flavor' : null))),
+          hasMatch
+        };
+      }).filter(r => r.hasMatch).slice(0, 10);
+      
+      // Add recipe results
+      matchingRecipes.forEach((result: any) => {
+        results.push({
+          type: 'recipe',
+          source: 'CCAE',
+          id: result.recipe.id,
+          name: result.recipe.name,
+          cuisine: result.recipe.cuisine,
+          ingredients: result.recipe.ingredients || [],
+          matchedIngredient: result.matchedIngredient || result.flavorMatchedIngredient || query,
+          matchType: result.matchType,
+          matchedFlavor: result.matchedFlavor,
+          detectedFlavors: result.detectedFlavors,
+          ingredientCount: result.recipe.ingredients?.length || 0
+        });
+      });
+      
+      setSearchResults(results);
     } catch (err) {
       console.error('Search failed:', err);
       setSearchResults([]);
     } finally {
       setSearchLoading(false);
     }
+  };
+
+  const handleAdaptRecipe = (item: any) => {
+    // Store recipe selection and redirect to adapt page
+    localStorage.setItem('selectedRecipe', item.id.toString());
+    localStorage.setItem('sourceCuisine', item.cuisine);
+    localStorage.setItem('searchIngredient', item.matchedIngredient || '');
+    router.push('/adapt');
   };
 
   const handleCopyKey = (key: string) => {
@@ -496,9 +621,12 @@ export default function ApiKeysPage() {
                 <input
                   type="text"
                   value={ingredientQuery}
-                  onChange={(e) => setIngredientQuery(e.target.value)}
+                  onChange={(e) => {
+                    setIngredientQuery(e.target.value);
+                    if (!e.target.value.trim()) setSearchPerformed(false);
+                  }}
                   onKeyDown={(e) => e.key === 'Enter' && handleSearchIngredients()}
-                  placeholder="Search ingredients (e.g. turmeric, basil, garlic)"
+                  placeholder="Search ingredients (e.g. chicken, butter, basil, tomato)"
                   className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
                 />
                 <button
@@ -517,35 +645,142 @@ export default function ApiKeysPage() {
               <div className="min-h-[150px] border border-gray-200 rounded-lg p-4 bg-gray-50">
                 {searchResults.length > 0 ? (
                   <div className="space-y-3">
-                    {searchResults.map((item, i) => (
-                      <div key={i} className="p-4 bg-white rounded-lg border border-gray-100">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="font-medium text-gray-900">{item.name}</p>
-                            <p className="text-sm text-gray-500">{item.category}</p>
-                          </div>
-                          <div className="flex gap-4 text-sm">
-                            <div className="text-center">
-                              <p className="font-semibold text-blue-600">{item.molecules}</p>
-                              <p className="text-xs text-gray-500">Molecules</p>
-                            </div>
-                            <div className="text-center">
-                              <p className="font-semibold text-purple-600">{item.compounds}</p>
-                              <p className="text-xs text-gray-500">Compounds</p>
-                            </div>
-                          </div>
+                    {/* FlavorDB Results */}
+                    {searchResults.filter(item => item.source === 'FlavorDB').length > 0 && (
+                      <div className="mb-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Beaker className="w-4 h-4 text-purple-600" />
+                          <span className="text-sm font-semibold text-purple-700">FlavorDB Results</span>
+                          <span className="text-xs text-gray-400">({searchResults.filter(item => item.source === 'FlavorDB').length})</span>
                         </div>
+                        {searchResults.filter(item => item.source === 'FlavorDB').map((item, i) => (
+                          <div key={`fdb-${i}`} className="p-4 bg-gradient-to-r from-purple-50 to-white rounded-lg border border-purple-200 hover:border-purple-300 transition-colors mb-2">
+                            <div className="flex items-center justify-between">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs font-medium rounded">FlavorDB</span>
+                                  {item.category && (
+                                    <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs font-medium rounded capitalize">{item.category}</span>
+                                  )}
+                                  <p className="font-medium text-gray-900">{item.name}</p>
+                                </div>
+                                {item.flavorProfile && item.flavorProfile.length > 0 && (
+                                  <div className="flex items-center gap-1 mt-1">
+                                    <span className="text-xs text-gray-400">Flavors:</span>
+                                    {item.flavorProfile.slice(0, 5).map((f: string, idx: number) => (
+                                      <span key={idx} className="px-1.5 py-0.5 bg-purple-100 text-purple-600 text-[10px] rounded capitalize">{f}</span>
+                                    ))}
+                                  </div>
+                                )}
+                                {item.molecules && item.molecules.length > 0 && (
+                                  <p className="text-xs text-gray-500 mt-1">
+                                    {item.molecules.length} molecules
+                                  </p>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-2 ml-4">
+                                <button className="px-3 py-1.5 bg-purple-100 text-purple-700 text-xs font-medium rounded-lg hover:bg-purple-200 transition-colors flex items-center gap-1">
+                                  <Beaker className="w-3 h-3" />
+                                  View Molecules
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                    ))}
+                    )}
+
+                    {/* CCAE Recipe Results */}
+                    {searchResults.filter(item => item.source === 'CCAE').length > 0 && (
+                      <div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <Database className="w-4 h-4 text-blue-600" />
+                          <span className="text-sm font-semibold text-blue-700">CCAE Recipes</span>
+                          <span className="text-xs text-gray-400">({searchResults.filter(item => item.source === 'CCAE').length})</span>
+                        </div>
+                        {searchResults.filter(item => item.source === 'CCAE').map((item, i) => (
+                          <div key={`ccae-${i}`} className="p-4 bg-white rounded-lg border border-gray-100 hover:border-blue-200 transition-colors mb-2">
+                            <div className="flex items-center justify-between">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs font-medium rounded capitalize">{item.cuisine}</span>
+                                  {item.matchType === 'name' && (
+                                    <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded">Name Match</span>
+                                  )}
+                                  {item.matchType === 'cuisine' && (
+                                    <span className="px-2 py-0.5 bg-cyan-100 text-cyan-700 text-xs font-medium rounded">Cuisine Match</span>
+                                  )}
+                                  {item.matchType === 'ingredient' && (
+                                    <span className="px-2 py-0.5 bg-orange-100 text-orange-700 text-xs font-medium rounded">Ingredient Match</span>
+                                  )}
+                                  {item.matchType === 'flavor' && (
+                                    <span className="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs font-medium rounded">Flavor: {item.matchedFlavor}</span>
+                                  )}
+                                  <p className="font-medium text-gray-900">{item.name}</p>
+                                </div>
+                                <p className="text-sm text-gray-500 mt-1">
+                                  {item.ingredientCount} ingredients
+                                  {item.matchedIngredient && item.matchType === 'ingredient' && (
+                                    <span className="text-orange-600 ml-2">• matched: "{item.matchedIngredient}"</span>
+                                  )}
+                                </p>
+                                {item.detectedFlavors && item.detectedFlavors.length > 0 && (
+                                  <div className="flex items-center gap-1 mt-1">
+                                    <span className="text-xs text-gray-400">Flavors:</span>
+                                    {item.detectedFlavors.slice(0, 4).map((f: string) => (
+                                      <span key={f} className="px-1.5 py-0.5 bg-gray-100 text-gray-600 text-[10px] rounded capitalize">{f}</span>
+                                    ))}
+                                  </div>
+                                )}
+                                {item.ingredients && (
+                                  <p className="text-xs text-gray-400 mt-1 truncate max-w-md">
+                                    {item.ingredients.slice(0, 6).join(', ')}{item.ingredients.length > 6 ? ` +${item.ingredients.length - 6} more` : ''}
+                                  </p>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-2 ml-4">
+                                <button
+                                  onClick={() => handleAdaptRecipe(item)}
+                                  className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-sm font-medium rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all shadow-sm hover:shadow-md flex items-center gap-1.5"
+                                >
+                                  <Zap className="w-4 h-4" />
+                                  Adapt
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center h-full text-center py-8">
                     <Search className="w-12 h-12 text-gray-300 mb-3" />
-                    <p className="text-gray-500">
-                      {foodscopeStatus?.connected 
-                        ? 'Search for ingredients to see molecular data' 
-                        : 'Configure and connect FoodScope API to search ingredients'}
-                    </p>
+                    {searchPerformed ? (
+                      <div>
+                        <p className="text-gray-700 font-medium mb-1">No recipes found for "{ingredientQuery}"</p>
+                        <p className="text-gray-500 text-sm mb-3">
+                          Try searching for ingredients, recipe names, or flavors
+                        </p>
+                        <div className="flex flex-wrap justify-center gap-2">
+                          {['chicken', 'garlic', 'spicy', 'tomato', 'cream', 'sweet'].map(term => (
+                            <button
+                              key={term}
+                              onClick={() => { setIngredientQuery(term); }}
+                              className="px-2 py-1 bg-blue-50 text-blue-600 text-xs rounded hover:bg-blue-100 transition-colors"
+                            >
+                              {term}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-gray-500">
+                        {backendStatus?.connected 
+                          ? 'Search for ingredients, recipe names, or flavors (spicy, sweet, etc.)' 
+                          : 'Connect to CCAE backend to search ingredients'}
+                      </p>
+                    )}
                   </div>
                 )}
               </div>

@@ -140,30 +140,30 @@ export default function DataUploadPage() {
 
             <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
               <div className="flex items-center justify-between mb-2">
-                <Upload className="w-8 h-8 text-blue-600" />
-                <span className="text-sm text-blue-600 font-medium">Active</span>
+                <Upload className="w-8 h-8 text-green-600" />
+                <span className="text-sm text-green-600 font-medium">Active</span>
               </div>
               <div className="text-2xl font-bold text-gray-900">
-                {systemStats.totalMolecules}
+                {systemStats.totalIngredients}
               </div>
-              <div className="text-sm text-gray-600">Molecules</div>
+              <div className="text-sm text-gray-600">Total Ingredients</div>
             </div>
 
             <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
               <div className="flex items-center justify-between mb-2">
-                <CheckCircle className="w-8 h-8 text-blue-600" />
-                <span className="text-sm text-blue-600 font-medium">Done</span>
+                <CheckCircle className="w-8 h-8 text-purple-600" />
+                <span className="text-sm text-purple-600 font-medium">Active</span>
               </div>
               <div className="text-2xl font-bold text-gray-900">
-                {systemStats.processedFiles}
+                {systemStats.totalCuisines}
               </div>
-              <div className="text-sm text-gray-600">Files Processed</div>
+              <div className="text-sm text-gray-600">Total Cuisines</div>
             </div>
 
             <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
               <div className="flex items-center justify-between mb-2">
-                <RefreshCw className="w-8 h-8 text-blue-600" />
-                <span className="text-sm text-blue-600 font-medium">Ready</span>
+                <RefreshCw className="w-8 h-8 text-orange-600" />
+                <span className="text-sm text-orange-600 font-medium">Ready</span>
               </div>
               <div className="text-2xl font-bold text-gray-900">
                 {new Date(systemStats.lastUpdate).toLocaleDateString()}

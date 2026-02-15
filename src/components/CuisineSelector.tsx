@@ -52,6 +52,19 @@ const CuisineSelector = ({ onPreview }: CuisineSelectorProps) => {
     fetchCuisines();
   }, []);
 
+  // Auto-select cuisine from localStorage if available
+  useEffect(() => {
+    if (cuisines.length > 0 && !selectedCuisine) {
+      const storedCuisine = localStorage.getItem('targetCuisine');
+      if (storedCuisine) {
+        const cuisine = cuisines.find(c => c.name.toLowerCase() === storedCuisine.toLowerCase());
+        if (cuisine) {
+          setSelectedCuisine(cuisine);
+        }
+      }
+    }
+  }, [cuisines, selectedCuisine]);
+
   const handleCuisineSelect = (cuisine: Cuisine) => {
     setSelectedCuisine(cuisine);
     localStorage.setItem('targetCuisine', cuisine.name);

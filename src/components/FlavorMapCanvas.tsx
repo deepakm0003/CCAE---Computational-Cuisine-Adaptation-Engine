@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
+import { ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
 
 interface FlavorMapCanvasProps {
   data: any;
@@ -22,6 +23,12 @@ const cuisineColors: Record<string, string> = {
   american: '#6366f1',
   vietnamese: '#84cc16',
   spanish: '#f43f5e',
+  mediterranean: '#0ea5e9',
+  middle_eastern: '#d946ef',
+  african: '#ca8a04',
+  caribbean: '#f472b6',
+  brazilian: '#4ade80',
+  peruvian: '#fb923c',
   default: '#64748b'
 };
 
@@ -34,9 +41,20 @@ const FlavorMapCanvas: React.FC<FlavorMapCanvasProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const [hoveredCuisine, setHoveredCuisine] = useState<any>(null);
   const [dimensions, setDimensions] = useState({ width: 800, height: 500 });
+  
+  // Zoom and pan state
+  const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [isPanning, setIsPanning] = useState(false);
+  const [panStart, setPanStart] = useState({ x: 0, y: 0 });
+
+  // Zoom controls
+  const handleZoomIn = () => setZoom(prev => Math.min(prev + 0.25, 3));
+  const handleZoomOut = () => setZoom(prev => Math.max(prev - 0.25, 0.5));
+  const handleResetView = () => { setZoom(1); setPan({ x: 0, y: 0 }); };
 
   const getCuisineColor = (name: string) => {
-    const lowerName = name.toLowerCase();
+    const lowerName = name.toLowerCase().replace(/[^a-z]/g, '_');
     return cuisineColors[lowerName] || cuisineColors.default;
   };
 
@@ -50,32 +68,40 @@ const FlavorMapCanvas: React.FC<FlavorMapCanvasProps> = ({
 
     const { width, height } = dimensions;
 
-    // Create gradient background
+    // Clear and create gradient background
     const gradient = ctx.createRadialGradient(width/2, height/2, 0, width/2, height/2, Math.max(width, height)/2);
     gradient.addColorStop(0, '#f8fafc');
     gradient.addColorStop(1, '#e2e8f0');
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, width, height);
 
-    // Draw subtle grid
+    // Save context and apply zoom/pan transformations
+    ctx.save();
+    ctx.translate(pan.x, pan.y);
+    ctx.translate(width / 2, height / 2);
+    ctx.scale(zoom, zoom);
+    ctx.translate(-width / 2, -height / 2);
+
+    // Draw subtle grid (adjusted for zoom)
+    const gridSize = 40;
     ctx.strokeStyle = '#cbd5e1';
-    ctx.lineWidth = 0.5;
-    for (let i = 0; i <= width; i += 40) {
+    ctx.lineWidth = 0.5 / zoom;
+    for (let i = -width; i <= width * 2; i += gridSize) {
       ctx.beginPath();
-      ctx.moveTo(i, 0);
-      ctx.lineTo(i, height);
+      ctx.moveTo(i, -height);
+      ctx.lineTo(i, height * 2);
       ctx.stroke();
     }
-    for (let i = 0; i <= height; i += 40) {
+    for (let i = -height; i <= height * 2; i += gridSize) {
       ctx.beginPath();
-      ctx.moveTo(0, i);
-      ctx.lineTo(width, i);
+      ctx.moveTo(-width, i);
+      ctx.lineTo(width * 2, i);
       ctx.stroke();
     }
 
     // Draw center axes with labels
     ctx.strokeStyle = '#94a3b8';
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 2 / zoom;
     ctx.setLineDash([5, 5]);
     ctx.beginPath();
     ctx.moveTo(width / 2, 20);
@@ -183,7 +209,10 @@ const FlavorMapCanvas: React.FC<FlavorMapCanvasProps> = ({
         ctx.fillText(String(recipeCount), clampedX, clampedY);
       }
     });
-  }, [data, dimensions, selectedCuisine, hoveredCuisine]);
+
+    // Restore context after transformations
+    ctx.restore();
+  }, [data, dimensions, selectedCuisine, hoveredCuisine, zoom, pan]);
 
   // Helper function to lighten a color
   const lightenColor = (color: string, percent: number) => {
@@ -233,12 +262,23 @@ const FlavorMapCanvas: React.FC<FlavorMapCanvasProps> = ({
     drawCanvas();
   }, [drawCanvas]);
 
+  // Transform screen coordinates to canvas coordinates with zoom/pan
+  const screenToCanvas = (screenX: number, screenY: number) => {
+    const { width, height } = dimensions;
+    // Reverse the transformation: translate, scale
+    const x = (screenX - pan.x - width / 2) / zoom + width / 2;
+    const y = (screenY - pan.y - height / 2) / zoom + height / 2;
+    return { x, y };
+  };
+
   const handleCanvasClick = (event: React.MouseEvent<HTMLCanvasElement>) => {
     if (!canvasRef.current || !data?.cuisines) return;
+    if (isPanning) return; // Don't click while panning
 
     const rect = canvasRef.current.getBoundingClientRect();
-    const clickX = event.clientX - rect.left;
-    const clickY = event.clientY - rect.top;
+    const screenX = event.clientX - rect.left;
+    const screenY = event.clientY - rect.top;
+    const { x: clickX, y: clickY } = screenToCanvas(screenX, screenY);
 
     // Find clicked cuisine
     const clickedCuisine = findCuisineAtPoint(clickX, clickY);
@@ -290,16 +330,62 @@ const FlavorMapCanvas: React.FC<FlavorMapCanvasProps> = ({
     if (!canvasRef.current || !data?.cuisines) return;
 
     const rect = canvasRef.current.getBoundingClientRect();
-    const mouseX = event.clientX - rect.left;
-    const mouseY = event.clientY - rect.top;
+    const screenX = event.clientX - rect.left;
+    const screenY = event.clientY - rect.top;
+
+    // Handle panning
+    if (isPanning) {
+      const deltaX = screenX - panStart.x;
+      const deltaY = screenY - panStart.y;
+      setPan(prev => ({ x: prev.x + deltaX, y: prev.y + deltaY }));
+      setPanStart({ x: screenX, y: screenY });
+      return;
+    }
+
+    const { x: mouseX, y: mouseY } = screenToCanvas(screenX, screenY);
 
     const hoveredCuisineFound = findCuisineAtPoint(mouseX, mouseY);
     setHoveredCuisine(hoveredCuisineFound || null);
     
     // Update cursor style
     if (canvasRef.current) {
-      canvasRef.current.style.cursor = hoveredCuisineFound ? 'pointer' : 'default';
+      canvasRef.current.style.cursor = hoveredCuisineFound ? 'pointer' : 'grab';
     }
+  };
+
+  // Mouse down for panning
+  const handleMouseDown = (event: React.MouseEvent<HTMLCanvasElement>) => {
+    const rect = canvasRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const screenX = event.clientX - rect.left;
+    const screenY = event.clientY - rect.top;
+    
+    // Check if clicking on a cuisine
+    const { x, y } = screenToCanvas(screenX, screenY);
+    const cuisine = findCuisineAtPoint(x, y);
+    
+    if (!cuisine) {
+      setIsPanning(true);
+      setPanStart({ x: screenX, y: screenY });
+      if (canvasRef.current) {
+        canvasRef.current.style.cursor = 'grabbing';
+      }
+    }
+  };
+
+  // Mouse up to stop panning
+  const handleMouseUp = () => {
+    setIsPanning(false);
+    if (canvasRef.current) {
+      canvasRef.current.style.cursor = 'grab';
+    }
+  };
+
+  // Mouse wheel for zooming
+  const handleWheel = (event: React.WheelEvent<HTMLCanvasElement>) => {
+    event.preventDefault();
+    const delta = event.deltaY > 0 ? -0.1 : 0.1;
+    setZoom(prev => Math.max(0.5, Math.min(3, prev + delta)));
   };
 
   return (
@@ -311,47 +397,102 @@ const FlavorMapCanvas: React.FC<FlavorMapCanvasProps> = ({
         className="rounded-xl shadow-inner"
         onClick={handleCanvasClick}
         onMouseMove={handleCanvasMouseMove}
-        onMouseLeave={() => setHoveredCuisine(null)}
+        onMouseDown={handleMouseDown}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={() => { setHoveredCuisine(null); setIsPanning(false); }}
+        onWheel={handleWheel}
       />
+
+      {/* Zoom Controls */}
+      <div className="absolute top-4 left-4 flex flex-col gap-2">
+        <button
+          onClick={handleZoomIn}
+          className="w-9 h-9 bg-white/95 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200 flex items-center justify-center hover:bg-blue-50 hover:border-blue-300 transition-colors"
+          title="Zoom In"
+        >
+          <ZoomIn className="w-4 h-4 text-gray-700" />
+        </button>
+        <button
+          onClick={handleZoomOut}
+          className="w-9 h-9 bg-white/95 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200 flex items-center justify-center hover:bg-blue-50 hover:border-blue-300 transition-colors"
+          title="Zoom Out"
+        >
+          <ZoomOut className="w-4 h-4 text-gray-700" />
+        </button>
+        <button
+          onClick={handleResetView}
+          className="w-9 h-9 bg-white/95 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200 flex items-center justify-center hover:bg-blue-50 hover:border-blue-300 transition-colors"
+          title="Reset View"
+        >
+          <RotateCcw className="w-4 h-4 text-gray-700" />
+        </button>
+        <div className="w-9 h-9 bg-white/95 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200 flex items-center justify-center text-xs font-medium text-gray-600">
+          {Math.round(zoom * 100)}%
+        </div>
+      </div>
       
       {/* Axis Labels */}
       <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 px-3 py-1 bg-white/80 backdrop-blur-sm rounded-full text-xs text-gray-600 font-medium shadow-sm">
         Flavor Complexity →
       </div>
-      <div className="absolute top-1/2 left-4 transform -translate-y-1/2 -rotate-90 px-3 py-1 bg-white/80 backdrop-blur-sm rounded-full text-xs text-gray-600 font-medium shadow-sm">
+      <div className="absolute top-1/2 left-14 transform -translate-y-1/2 -rotate-90 px-3 py-1 bg-white/80 backdrop-blur-sm rounded-full text-xs text-gray-600 font-medium shadow-sm">
         Authenticity →
       </div>
 
       {/* Legend */}
       <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-sm rounded-xl p-3 text-xs shadow-lg border border-gray-100">
-        <div className="text-gray-700 font-semibold mb-2">Cuisines</div>
-        <div className="space-y-1.5">
-          {data?.cuisines?.slice(0, 6).map((c: any) => (
+        <div className="text-gray-700 font-semibold mb-2">Cuisines ({data?.cuisines?.length || 0})</div>
+        <div className="space-y-1.5 max-h-40 overflow-y-auto">
+          {data?.cuisines?.slice(0, 8).map((c: any) => (
             <div key={c.name} className="flex items-center gap-2">
               <div 
-                className="w-3 h-3 rounded-full" 
+                className="w-3 h-3 rounded-full flex-shrink-0" 
                 style={{ backgroundColor: getCuisineColor(c.name) }}
               />
-              <span className="capitalize text-gray-600">{c.name}</span>
+              <span className="capitalize text-gray-600 truncate">{c.name}</span>
               <span className="text-gray-400 text-[10px]">({c.details?.recipe_count || 0})</span>
             </div>
           ))}
-          {data?.cuisines?.length > 6 && (
-            <div className="text-gray-400 text-[10px]">+{data.cuisines.length - 6} more</div>
+          {data?.cuisines?.length > 8 && (
+            <div className="text-gray-400 text-[10px]">+{data.cuisines.length - 8} more</div>
           )}
         </div>
       </div>
 
       {/* Hover tooltip */}
       {hoveredCuisine && (
-        <div className="absolute bottom-4 right-4 bg-white rounded-xl p-3 shadow-lg border border-gray-100 text-sm">
-          <div className="font-semibold text-gray-900 capitalize">{hoveredCuisine.name}</div>
-          <div className="text-gray-500 text-xs mt-1">
-            {hoveredCuisine.details?.recipe_count || 0} recipes • {hoveredCuisine.details?.ingredient_count || 0} ingredients
+        <div className="absolute bottom-4 right-4 bg-white rounded-xl p-4 shadow-lg border border-gray-100 text-sm min-w-[200px]">
+          <div className="font-semibold text-gray-900 capitalize text-base">{hoveredCuisine.name}</div>
+          <div className="text-gray-500 text-xs mt-2 space-y-1">
+            <div className="flex justify-between">
+              <span>Recipes:</span>
+              <span className="font-medium text-gray-700">{hoveredCuisine.details?.recipe_count || 0}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Ingredients:</span>
+              <span className="font-medium text-gray-700">{hoveredCuisine.details?.ingredient_count || 0}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Molecules:</span>
+              <span className="font-medium text-gray-700">{hoveredCuisine.details?.molecule_count || 0}</span>
+            </div>
           </div>
-          <div className="text-blue-600 text-xs mt-1">Click to view details</div>
+          {hoveredCuisine.details?.top_ingredients?.length > 0 && (
+            <div className="mt-2 pt-2 border-t border-gray-100">
+              <div className="text-xs text-gray-400 mb-1">Top Ingredients:</div>
+              <div className="text-xs text-gray-600">
+                {hoveredCuisine.details.top_ingredients.slice(0, 3).map((ing: any) => ing.name || ing).join(', ')}
+              </div>
+            </div>
+          )}
+          <div className="text-blue-600 text-xs mt-2 font-medium">Click to view details</div>
         </div>
       )}
+
+      {/* Usage hint */}
+      <div className="absolute bottom-4 left-14 px-3 py-1 bg-white/80 backdrop-blur-sm rounded-full text-[10px] text-gray-500 shadow-sm">
+        Scroll to zoom • Drag to pan
+      </div>
     </div>
   );
 };

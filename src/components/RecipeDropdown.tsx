@@ -59,8 +59,29 @@ const RecipeDropdown = ({ onPreview }: RecipeDropdownProps) => {
   };
 
   useEffect(() => {
-    fetchRecipes();
+    const loadRecipes = async () => {
+      await fetchRecipes();
+    };
+    loadRecipes();
   }, []);
+
+  // Auto-select recipe from localStorage if available
+  useEffect(() => {
+    if (recipes.length > 0 && !selectedRecipe) {
+      const storedRecipeId = localStorage.getItem('selectedRecipe');
+      if (storedRecipeId) {
+        const recipe = recipes.find(r => r.id.toString() === storedRecipeId);
+        if (recipe) {
+          setSelectedRecipe(recipe);
+          const summaryData: RecipeSummary = {
+            recipe,
+            identity_baseline_score: recipe.identity_strength || 0.75
+          };
+          setSummary(summaryData);
+        }
+      }
+    }
+  }, [recipes, selectedRecipe]);
 
   const handleRecipeSelect = (recipe: Recipe) => {
     setSelectedRecipe(recipe);

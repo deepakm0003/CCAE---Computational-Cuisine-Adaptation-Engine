@@ -206,9 +206,9 @@ export default function FlavorMapPage() {
               <span className="text-sm text-blue-600 font-medium">Active</span>
             </div>
             <div className="text-2xl font-bold text-gray-900">
-              {flavorData?.dimensions || 2}
+              {flavorData?.cuisines?.reduce((sum: number, c: any) => sum + (c.details?.recipe_count || 0), 0) || 0}
             </div>
-            <div className="text-sm text-gray-600">Dimensions</div>
+            <div className="text-sm text-gray-600">Total Recipes</div>
           </div>
 
           <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
@@ -217,9 +217,9 @@ export default function FlavorMapPage() {
               <span className="text-sm text-blue-600 font-medium">Ready</span>
             </div>
             <div className="text-2xl font-bold text-gray-900">
-              {flavorData?.molecules?.length || 0}
+              {flavorData?.cuisines?.reduce((sum: number, c: any) => sum + (c.details?.ingredient_count || 0), 0) || 0}
             </div>
-            <div className="text-sm text-gray-600">Molecules</div>
+            <div className="text-sm text-gray-600">Unique Ingredients</div>
           </div>
 
           <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
@@ -228,9 +228,9 @@ export default function FlavorMapPage() {
               <span className="text-sm text-blue-600 font-medium">Updated</span>
             </div>
             <div className="text-2xl font-bold text-gray-900">
-              98%
+              {flavorData?.cuisines?.reduce((sum: number, c: any) => sum + (c.details?.molecule_count || 0), 0) || 0}
             </div>
-            <div className="text-sm text-gray-600">Accuracy</div>
+            <div className="text-sm text-gray-600">Flavor Molecules</div>
           </div>
         </motion.div>
 

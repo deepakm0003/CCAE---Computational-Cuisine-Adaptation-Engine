@@ -52,7 +52,7 @@ export default function MetricsPage() {
       // Get health data and adaptations from MVP backend
       const [healthResponse, adaptations] = await Promise.all([
         ccaeApi.getHealth(),
-        ccaeApi.getAdaptations({ limit: 1000 })
+        ccaeApi.getAdaptations({ limit: 100 })
       ]);
 
       // Calculate metrics from real data
