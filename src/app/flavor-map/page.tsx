@@ -44,24 +44,37 @@ export default function FlavorMapPage() {
       
       // Get identity data for each cuisine
       const cuisineIdentities = await Promise.all(
-        cuisines.map(async (cuisine: any) => {
+        cuisines.map(async (cuisine: any, index: number) => {
           try {
-            const identity = await ccaeApi.getCuisineIdentity(cuisine.name);
+            // Handle both string and object formats from API
+            const cuisineName = typeof cuisine === 'string' ? cuisine : cuisine.name;
+            if (!cuisineName) {
+              console.warn('Skipping cuisine with no name:', cuisine);
+              return null;
+            }
+            const identity = await ccaeApi.getCuisineIdentity(cuisineName);
+            
+            // Use deterministic grid positioning when embeddings not available
+            const gridCols = 5;
+            const gridSpacing = 20;
+            const defaultX = (index % gridCols) * gridSpacing + 10;
+            const defaultY = Math.floor(index / gridCols) * gridSpacing + 10;
+            
             return {
-              name: cuisine.name,
-              x: identity.embedding_2d[0] || 0,
-              y: identity.embedding_2d[1] || 0,
-              size: Math.sqrt(identity.ingredient_count) * 10,
-              color: getCuisineColor(cuisine.name),
+              name: cuisineName,
+              x: identity.embedding_2d?.[0] ?? defaultX,
+              y: identity.embedding_2d?.[1] ?? defaultY,
+              size: Math.sqrt(identity.ingredient_count || 1) * 10,
+              color: getCuisineColor(cuisineName),
               details: {
-                recipe_count: identity.recipe_count,
-                ingredient_count: identity.ingredient_count,
-                top_ingredients: identity.top_ingredients.slice(0, 5),
-                molecule_count: Object.keys(identity.molecule_distribution).length
+                recipe_count: identity.recipe_count || 0,
+                ingredient_count: identity.ingredient_count || 0,
+                top_ingredients: identity.top_ingredients?.slice(0, 5) || [],
+                molecule_count: identity.molecule_distribution ? Object.keys(identity.molecule_distribution).length : 0
               }
             };
           } catch (err) {
-            console.warn(`Failed to get identity for ${cuisine.name}:`, err);
+            console.warn(`Failed to get identity for ${typeof cuisine === 'string' ? cuisine : cuisine.name}:`, err);
             return null;
           }
         })
@@ -193,9 +206,9 @@ export default function FlavorMapPage() {
               <span className="text-sm text-blue-600 font-medium">Active</span>
             </div>
             <div className="text-2xl font-bold text-gray-900">
-              {flavorData?.dimensions || 2}
+              {flavorData?.cuisines?.reduce((sum: number, c: any) => sum + (c.details?.recipe_count || 0), 0) || 0}
             </div>
-            <div className="text-sm text-gray-600">Dimensions</div>
+            <div className="text-sm text-gray-600">Total Recipes</div>
           </div>
 
           <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
@@ -204,9 +217,9 @@ export default function FlavorMapPage() {
               <span className="text-sm text-blue-600 font-medium">Ready</span>
             </div>
             <div className="text-2xl font-bold text-gray-900">
-              {flavorData?.molecules?.length || 0}
+              {flavorData?.cuisines?.reduce((sum: number, c: any) => sum + (c.details?.ingredient_count || 0), 0) || 0}
             </div>
-            <div className="text-sm text-gray-600">Molecules</div>
+            <div className="text-sm text-gray-600">Unique Ingredients</div>
           </div>
 
           <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
@@ -215,9 +228,9 @@ export default function FlavorMapPage() {
               <span className="text-sm text-blue-600 font-medium">Updated</span>
             </div>
             <div className="text-2xl font-bold text-gray-900">
-              98%
+              {flavorData?.cuisines?.reduce((sum: number, c: any) => sum + (c.details?.molecule_count || 0), 0) || 0}
             </div>
-            <div className="text-sm text-gray-600">Accuracy</div>
+            <div className="text-sm text-gray-600">Flavor Molecules</div>
           </div>
         </motion.div>
 

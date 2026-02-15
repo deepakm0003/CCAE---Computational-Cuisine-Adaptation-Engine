@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import { useState, useRef } from 'react';
 import { Upload, FileText, Database, AlertTriangle, CheckCircle } from 'lucide-react';
+import { uploadRecipes, uploadMolecules } from '@/lib/api';
 
 interface FileUploadCardProps {
   title: string;
@@ -59,9 +60,9 @@ const FileUploadCard: React.FC<FileUploadCardProps> = ({
       return;
     }
     
-    if (fileType === 'molecules' && !file.name.endsWith('.json')) {
+    if (fileType === 'molecules' && !file.name.endsWith('.csv')) {
       setUploadStatus('error');
-      setErrorMessage('Please upload a JSON file for molecular data');
+      setErrorMessage('Please upload a CSV file for molecular data');
       return;
     }
 
@@ -76,8 +77,13 @@ const FileUploadCard: React.FC<FileUploadCardProps> = ({
     setErrorMessage('');
 
     try {
-      // Simulate upload process
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Actually upload to the backend
+      let result;
+      if (fileType === 'recipes') {
+        result = await uploadRecipes(file);
+      } else {
+        result = await uploadMolecules(file);
+      }
       
       onUpload(file, fileType);
       setUploadStatus('success');
@@ -87,9 +93,9 @@ const FileUploadCard: React.FC<FileUploadCardProps> = ({
         setUploadStatus('idle');
       }, 3000);
       
-    } catch (error) {
+    } catch (error: any) {
       setUploadStatus('error');
-      setErrorMessage('Upload failed. Please try again.');
+      setErrorMessage(error.response?.data?.detail || 'Upload failed. Please try again.');
     }
   };
 

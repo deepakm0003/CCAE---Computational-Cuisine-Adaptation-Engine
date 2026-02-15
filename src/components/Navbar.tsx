@@ -21,6 +21,7 @@ import {
   FlaskConical,
   BookOpen,
   Home,
+  Key,
 } from 'lucide-react';
 
 const getNavItems = (role: string) => {
@@ -29,6 +30,7 @@ const getNavItems = (role: string) => {
     { name: 'Upload', href: '/data-upload', icon: Upload },
     { name: 'Flavor Map', href: '/flavor-map', icon: Map },
     { name: 'Adapt', href: '/adapt', icon: Utensils },
+    { name: 'API Keys', href: '/api-keys', icon: Key },
   ];
 
   switch (role) {
@@ -167,6 +169,13 @@ export default function Navbar() {
                   >
                     <Settings className="w-4 h-4" />
                     Settings
+                  </button>
+                  <button
+                    onClick={() => { router.push('/api-keys'); setProfileOpen(false); }}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                  >
+                    <Key className="w-4 h-4" />
+                    API Keys
                   </button>
                   <div className="border-t border-gray-100 mt-1 pt-1">
                     <button

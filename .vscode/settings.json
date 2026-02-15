@@ -1,0 +1,7 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "lsof": true,
+        "netstat": true,
+        "ss": true
+    }
+}

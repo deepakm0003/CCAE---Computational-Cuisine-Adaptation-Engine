@@ -11,7 +11,11 @@ from sqlalchemy import create_engine, Column, Integer, String, Text, Float, Fore
 from sqlalchemy.orm import DeclarativeBase, relationship
 from datetime import datetime, timezone
 
-DATABASE_URL = "sqlite:///C:/Users/deepa/OneDrive/Desktop/ccae/backend/ccae_test.db"
+from pathlib import Path
+
+# Use a portable, repo-local SQLite file so tests run on Linux and CI
+db_path = Path(__file__).resolve().parent / "ccae_test.db"
+DATABASE_URL = f"sqlite:///{db_path.as_posix()}"
 engine = create_engine(DATABASE_URL, echo=False)
 
 class Base(DeclarativeBase):

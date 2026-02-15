@@ -1,36 +1,47 @@
 /**
  * FoodScope API Integration
  * 
- * This module provides placeholder functions for integrating with the FoodScope API.
- * Replace the base URL and API key with your actual credentials.
+ * This module integrates with the FlavorDB API for flavor molecule data.
+ * Uses local proxy at /api/flavordb to avoid CORS issues.
  * 
- * FoodScope API provides:
- * - Ingredient compound data
+ * FlavorDB API provides:
+ * - Ingredient flavor compound data
  * - Flavor molecule profiles
- * - Nutritional information
- * - Recipe ingredient parsing
- * - Food pairing suggestions
+ * - Food entity information
  */
 
-const FOODSCOPE_BASE_URL = process.env.NEXT_PUBLIC_FOODSCOPE_API_URL || 'https://api.foodscope.ai/v1';
-const FOODSCOPE_API_KEY = process.env.NEXT_PUBLIC_FOODSCOPE_API_KEY || '';
+import axios from 'axios';
 
-interface FoodScopeConfig {
-  baseUrl: string;
-  apiKey: string;
+// Use local proxy to avoid CORS
+const PROXY_URL = '/api/flavordb';
+
+// Get saved config (for display purposes)
+const getConfig = () => {
+  const savedUrl = typeof window !== 'undefined' ? localStorage.getItem('foodscope_api_url') : null;
+  
+  return {
+    baseUrl: savedUrl || 'https://cosylab.iiitd.edu.in/flavordb',
+  };
+};
+
+// --- Ingredient/Entity Endpoints ---
+
+export interface FlavorDBEntity {
+  entity_id: number;
+  entity_alias_readable: string;
+  entity_alias: string;
+  category: string;
+  natural_source_name?: string;
+  molecules?: FlavorMolecule[];
 }
 
-const getConfig = (): FoodScopeConfig => ({
-  baseUrl: FOODSCOPE_BASE_URL,
-  apiKey: FOODSCOPE_API_KEY,
-});
-
-const headers = () => ({
-  'Content-Type': 'application/json',
-  'Authorization': `Bearer ${getConfig().apiKey}`,
-});
-
-// --- Ingredient Endpoints ---
+export interface FlavorMolecule {
+  pubchem_id: number;
+  common_name: string;
+  flavor_profile: string;
+  fooddb_flavor_profile?: string;
+  natural_sources?: string[];
+}
 
 export interface IngredientCompound {
   id: string;
@@ -40,35 +51,95 @@ export interface IngredientCompound {
   molecules: string[];
 }
 
+// Search entities/ingredients in FlavorDB via proxy
 export async function searchIngredients(query: string): Promise<IngredientCompound[]> {
-  // TODO: Replace with actual FoodScope API call
-  // const res = await fetch(`${getConfig().baseUrl}/ingredients/search?q=${query}`, { headers: headers() });
-  // return res.json();
-  
-  console.log(`[FoodScope] searchIngredients: "${query}" — API not connected yet`);
-  return [];
+  try {
+    const response = await axios.get(PROXY_URL, {
+      params: { endpoint: 'entities', search: query, limit: 20 },
+      timeout: 15000
+    });
+
+    if (response.data && Array.isArray(response.data)) {
+      return response.data.map((entity: any) => ({
+        id: entity.entity_id?.toString() || entity.id?.toString() || '',
+        name: entity.entity_alias_readable || entity.name || entity.entity_alias || '',
+        category: entity.category || 'ingredient',
+        flavorProfile: entity.flavor_profile ? [entity.flavor_profile] : [],
+        molecules: entity.molecules?.map((m: any) => m.common_name || m.name) || []
+      }));
+    }
+    return [];
+  } catch (err: any) {
+    console.log(`[FlavorDB] Search failed for "${query}":`, err.message);
+    return [];
+  }
 }
 
+// Get entity details by ID via proxy
 export async function getIngredientById(id: string): Promise<IngredientCompound | null> {
-  // TODO: Replace with actual FoodScope API call
-  console.log(`[FoodScope] getIngredientById: "${id}" — API not connected yet`);
-  return null;
+  try {
+    const response = await axios.get(PROXY_URL, {
+      params: { endpoint: 'entity_details', id },
+      timeout: 15000
+    });
+
+    if (response.data) {
+      const entity = response.data;
+      return {
+        id: entity.entity_id?.toString() || id,
+        name: entity.entity_alias_readable || entity.name || '',
+        category: entity.category || 'ingredient',
+        flavorProfile: entity.flavor_profile ? [entity.flavor_profile] : [],
+        molecules: entity.molecules?.map((m: any) => m.common_name) || []
+      };
+    }
+    return null;
+  } catch (err) {
+    console.log(`[FlavorDB] getIngredientById failed for "${id}"`);
+    return null;
+  }
 }
 
-// --- Flavor Molecule Endpoints ---
+// Get flavor molecules for an entity via proxy
+export async function getFlavorMolecules(entityId: string): Promise<FlavorMolecule[]> {
+  try {
+    const response = await axios.get(PROXY_URL, {
+      params: { endpoint: 'entity_details', id: entityId },
+      timeout: 15000
+    });
 
-export interface FlavorMolecule {
-  id: string;
-  name: string;
-  formula: string;
-  flavorDescriptor: string;
-  foundIn: string[];
+    if (response.data?.molecules) {
+      return response.data.molecules.map((m: any) => ({
+        pubchem_id: m.pubchem_id || 0,
+        common_name: m.common_name || m.name || '',
+        flavor_profile: m.flavor_profile || m.fooddb_flavor_profile || '',
+        fooddb_flavor_profile: m.fooddb_flavor_profile || '',
+        natural_sources: m.natural_sources || []
+      }));
+    }
+    return [];
+  } catch (err) {
+    console.log(`[FlavorDB] getFlavorMolecules failed for "${entityId}"`);
+    return [];
+  }
 }
 
-export async function getFlavorMolecules(ingredientId: string): Promise<FlavorMolecule[]> {
-  // TODO: Replace with actual FoodScope API call
-  console.log(`[FoodScope] getFlavorMolecules: "${ingredientId}" — API not connected yet`);
-  return [];
+// Get all entities (paginated) via proxy
+export async function getAllEntities(page: number = 1, limit: number = 50): Promise<FlavorDBEntity[]> {
+  try {
+    const response = await axios.get(PROXY_URL, {
+      params: { endpoint: 'entities', page, limit },
+      timeout: 15000
+    });
+
+    if (response.data && Array.isArray(response.data)) {
+      return response.data;
+    }
+    return [];
+  } catch (err) {
+    console.log('[FlavorDB] getAllEntities failed');
+    return [];
+  }
 }
 
 // --- Food Pairing Endpoints ---
@@ -80,57 +151,70 @@ export interface FoodPairing {
   compatibilityScore: number;
 }
 
+// Get food pairings via proxy
 export async function getFoodPairings(ingredientId: string): Promise<FoodPairing[]> {
-  // TODO: Replace with actual FoodScope API call
-  console.log(`[FoodScope] getFoodPairings: "${ingredientId}" — API not connected yet`);
-  return [];
-}
+  try {
+    const response = await axios.get(PROXY_URL, {
+      params: { endpoint: 'pairing', id: ingredientId },
+      timeout: 15000
+    });
 
-// --- Recipe Parsing Endpoints ---
-
-export interface ParsedRecipe {
-  title: string;
-  ingredients: { name: string; quantity: string; unit: string }[];
-  cuisine: string;
-  flavorProfile: string[];
-}
-
-export async function parseRecipe(recipeText: string): Promise<ParsedRecipe | null> {
-  // TODO: Replace with actual FoodScope API call
-  console.log(`[FoodScope] parseRecipe — API not connected yet`);
-  return null;
-}
-
-// --- Bulk Data Endpoints ---
-
-export async function bulkUploadIngredients(data: any[]): Promise<{ success: boolean; count: number }> {
-  // TODO: Replace with actual FoodScope API call
-  console.log(`[FoodScope] bulkUploadIngredients: ${data.length} items — API not connected yet`);
-  return { success: false, count: 0 };
-}
-
-export async function bulkUploadMolecules(data: any[]): Promise<{ success: boolean; count: number }> {
-  // TODO: Replace with actual FoodScope API call
-  console.log(`[FoodScope] bulkUploadMolecules: ${data.length} items — API not connected yet`);
-  return { success: false, count: 0 };
+    if (response.data && Array.isArray(response.data)) {
+      return response.data.map((p: any) => ({
+        ingredient1: p.entity1_name || ingredientId,
+        ingredient2: p.entity2_name || p.paired_entity || '',
+        sharedMolecules: p.shared_molecules || p.shared_count || 0,
+        compatibilityScore: p.compatibility_score || p.score || 0
+      }));
+    }
+    return [];
+  } catch (err) {
+    console.log(`[FlavorDB] getFoodPairings failed for "${ingredientId}"`);
+    return [];
+  }
 }
 
 // --- Connection Test ---
 
-export async function testConnection(): Promise<{ connected: boolean; message: string }> {
-  const config = getConfig();
-  
-  if (!config.apiKey) {
-    return { connected: false, message: 'API key not configured. Set NEXT_PUBLIC_FOODSCOPE_API_KEY in your .env.local file.' };
-  }
-
+export async function testConnection(): Promise<{ connected: boolean; message: string; stats?: any }> {
   try {
-    // TODO: Replace with actual FoodScope health check endpoint
-    // const res = await fetch(`${config.baseUrl}/health`, { headers: headers() });
-    // if (res.ok) return { connected: true, message: 'Connected to FoodScope API' };
+    // Use proxy to test connection
+    const response = await axios.post(PROXY_URL, {}, { timeout: 15000 });
+
+    if (response.data?.connected) {
+      return { 
+        connected: true, 
+        message: response.data.message || 'Connected to FlavorDB',
+        stats: response.data.stats
+      };
+    }
     
-    return { connected: false, message: 'FoodScope API endpoint not configured yet.' };
-  } catch (err) {
-    return { connected: false, message: `Connection failed: ${err}` };
+    // Fallback: try GET request
+    const getResponse = await axios.get(PROXY_URL, {
+      params: { endpoint: 'entities', limit: 5 },
+      timeout: 15000
+    });
+    
+    if (getResponse.status === 200) {
+      const count = Array.isArray(getResponse.data) ? getResponse.data.length : 0;
+      return { 
+        connected: true, 
+        message: `Connected to FlavorDB (${count} entities)`,
+        stats: { entities: count }
+      };
+    }
+    return { connected: false, message: 'Connection test failed' };
+  } catch (err: any) {
+    return { connected: false, message: `Connection failed: ${err.message}` };
   }
 }
+
+// Export for use in components
+export default {
+  searchIngredients,
+  getIngredientById,
+  getFlavorMolecules,
+  getAllEntities,
+  getFoodPairings,
+  testConnection
+};

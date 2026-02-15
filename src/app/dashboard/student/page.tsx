@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
+import ccaeApi, { handleApiError, getAdaptationStats } from '@/lib/api';
 import { 
   Users, 
   BookOpen, 
@@ -23,11 +24,13 @@ export default function StudentDashboardPage() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
   const [stats, setStats] = useState({
-    coursesCompleted: 0,
-    recipesExplored: 0,
-    adaptationsTried: 0,
-    studyTime: 0
+    totalRecipes: 0,
+    totalCuisines: 0,
+    totalIngredients: 0,
+    recipesExplored: 0
   });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (isLoading) return;
@@ -37,29 +40,43 @@ export default function StudentDashboardPage() {
       return;
     }
 
-    setStats({
-      coursesCompleted: Math.floor(Math.random() * 5) + 2,
-      recipesExplored: Math.floor(Math.random() * 30) + 15,
-      adaptationsTried: Math.floor(Math.random() * 10) + 5,
-      studyTime: Math.floor(Math.random() * 20) + 10
-    });
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const health = await ccaeApi.getHealth();
+        const adaptationStats = getAdaptationStats();
+        
+        setStats({
+          totalRecipes: health.stats.recipes || 0,
+          totalCuisines: health.stats.cuisines || 0,
+          totalIngredients: health.stats.ingredients || 0,
+          recipesExplored: adaptationStats.total // Track via adaptations
+        });
+      } catch (err) {
+        console.error('Failed to fetch student data:', err);
+        setError(handleApiError(err));
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+    
+    // Listen for adaptation completions to refresh stats
+    const handleAdaptationComplete = () => fetchData();
+    window.addEventListener('adaptation-completed', handleAdaptationComplete);
+    
+    return () => {
+      window.removeEventListener('adaptation-completed', handleAdaptationComplete);
+    };
   }, [user, isLoading, router]);
 
-  const courses = [
-    { name: 'Introduction to Culinary Science', progress: 100, status: 'completed' },
-    { name: 'Cross-Cultural Cuisine Basics', progress: 75, status: 'in-progress' },
-    { name: 'Molecular Gastronomy Fundamentals', progress: 45, status: 'in-progress' },
-    { name: 'Advanced Recipe Adaptation', progress: 0, status: 'locked' }
-  ];
+  // Courses feature - coming soon
+  const courses: { name: string; progress: number; status: string }[] = [];
 
-  const achievements = [
-    { name: 'First Adaptation', icon: Trophy, earned: true },
-    { name: 'Cuisine Explorer', icon: Globe, earned: true },
-    { name: 'Quick Learner', icon: Zap, earned: false },
-    { name: 'Research Assistant', icon: Award, earned: false }
-  ];
+  // Achievements feature - coming soon
+  const achievements: { name: string; icon: any; earned: boolean }[] = [];
 
-  if (isLoading) {
+  if (isLoading || loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
@@ -103,42 +120,42 @@ export default function StudentDashboardPage() {
             <TrendingUp className="w-4 h-4 text-blue-600" />
           </div>
           <div className="text-2xl font-bold text-gray-900">
-            {stats.coursesCompleted}
+            {stats.totalRecipes}
           </div>
-          <div className="text-sm text-gray-600">Courses Completed</div>
+          <div className="text-sm text-gray-600">Total Recipes</div>
         </div>
 
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
           <div className="flex items-center justify-between mb-4">
             <Target className="w-8 h-8 text-blue-600" />
-            <div className="text-xs text-blue-600 font-medium">+8</div>
+            <div className="text-xs text-blue-600 font-medium">Live</div>
           </div>
           <div className="text-2xl font-bold text-gray-900">
-            {stats.recipesExplored}
+            {stats.totalCuisines}
           </div>
-          <div className="text-sm text-gray-600">Recipes Explored</div>
+          <div className="text-sm text-gray-600">Cuisines Available</div>
+        </div>
+
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+          <div className="flex items-center justify-between mb-4">
+            <Globe className="w-8 h-8 text-blue-600" />
+            <div className="text-xs text-blue-600 font-medium">Database</div>
+          </div>
+          <div className="text-2xl font-bold text-gray-900">
+            {stats.totalIngredients}
+          </div>
+          <div className="text-sm text-gray-600">Ingredients</div>
         </div>
 
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
           <div className="flex items-center justify-between mb-4">
             <Play className="w-8 h-8 text-blue-600" />
-            <div className="text-xs text-blue-600 font-medium">+3</div>
+            <div className="text-xs text-blue-600 font-medium">Ready</div>
           </div>
           <div className="text-2xl font-bold text-gray-900">
-            {stats.adaptationsTried}
+            {stats.recipesExplored}
           </div>
-          <div className="text-sm text-gray-600">Adaptations Tried</div>
-        </div>
-
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-          <div className="flex items-center justify-between mb-4">
-            <Clock className="w-8 h-8 text-blue-600" />
-            <div className="text-xs text-blue-600 font-medium">+2h</div>
-          </div>
-          <div className="text-2xl font-bold text-gray-900">
-            {stats.studyTime}h
-          </div>
-          <div className="text-sm text-gray-600">Study Time</div>
+          <div className="text-sm text-gray-600">Recipes Explored</div>
         </div>
       </motion.div>
 

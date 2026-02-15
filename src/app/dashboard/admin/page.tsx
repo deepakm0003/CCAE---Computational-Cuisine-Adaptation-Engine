@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
+import ccaeApi, { handleApiError } from '@/lib/api';
 import { 
   Shield, 
   Users, 
@@ -16,18 +17,22 @@ import {
   Clock,
   BarChart3,
   Zap,
-  Globe
+  Globe,
+  TrendingUp
 } from 'lucide-react';
 
 export default function AdminDashboardPage() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
   const [stats, setStats] = useState({
-    totalUsers: 0,
-    activeUsers: 0,
-    systemHealth: 0,
-    dataProcessed: 0
+    totalRecipes: 0,
+    totalCuisines: 0,
+    totalIngredients: 0,
+    systemHealth: 100
   });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [dbStatus, setDbStatus] = useState<string>('checking');
 
   useEffect(() => {
     if (isLoading) return;
@@ -37,26 +42,40 @@ export default function AdminDashboardPage() {
       return;
     }
 
-    setStats({
-      totalUsers: Math.floor(Math.random() * 200) + 100,
-      activeUsers: Math.floor(Math.random() * 100) + 50,
-      systemHealth: Math.floor(Math.random() * 10) + 90,
-      dataProcessed: Math.floor(Math.random() * 5000) + 10000
-    });
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const health = await ccaeApi.getHealth();
+        setStats({
+          totalRecipes: health.stats.recipes || 0,
+          totalCuisines: health.stats.cuisines || 0,
+          totalIngredients: health.stats.ingredients || 0,
+          systemHealth: health.status === 'healthy' ? 100 : 50
+        });
+        setDbStatus(health.database || 'connected');
+      } catch (err) {
+        console.error('Failed to fetch admin data:', err);
+        setError(handleApiError(err));
+        setDbStatus('disconnected');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
   }, [user, isLoading, router]);
 
-  const systemAlerts = [
-    { type: 'warning', message: 'High memory usage on processing server', time: '5 minutes ago' },
-    { type: 'info', message: 'Scheduled maintenance in 2 hours', time: '1 hour ago' },
-    { type: 'success', message: 'Database backup completed successfully', time: '2 hours ago' }
-  ];
+  const systemAlerts = dbStatus === 'connected' 
+    ? [{ type: 'success', message: 'All systems operational', time: 'Just now' }]
+    : [{ type: 'warning', message: 'Database connection issue', time: 'Just now' }];
 
-  const recentActivity = [
-    { action: 'User registration', user: 'John Doe', time: '2 minutes ago' },
-    { action: 'Recipe adaptation completed', user: 'Chef Smith', time: '5 minutes ago' },
-    { action: 'System update deployed', user: 'System', time: '15 minutes ago' },
-    { action: 'New data uploaded', user: 'Research Team', time: '30 minutes ago' }
-  ];
+  const recentActivity = dbStatus === 'connected'
+    ? [
+        { action: 'System healthy', user: 'System', time: 'Just now' },
+        { action: `${stats.totalRecipes} recipes in database`, user: 'Database', time: 'Current' }
+      ]
+    : [
+        { action: 'System check needed', user: 'System', time: 'Just now' }
+      ];
 
   const getAlertIcon = (type: string) => {
     switch (type) {
@@ -116,46 +135,46 @@ export default function AdminDashboardPage() {
       >
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
           <div className="flex items-center justify-between mb-4">
-            <Users className="w-8 h-8 text-blue-600" />
+            <Database className="w-8 h-8 text-blue-600" />
             <TrendingUp className="w-4 h-4 text-blue-600" />
           </div>
           <div className="text-2xl font-bold text-gray-900">
-            {stats.totalUsers}
+            {stats.totalRecipes}
           </div>
-          <div className="text-sm text-gray-600">Total Users</div>
+          <div className="text-sm text-gray-600">Total Recipes</div>
+        </div>
+
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+          <div className="flex items-center justify-between mb-4">
+            <Globe className="w-8 h-8 text-blue-600" />
+            <div className="text-xs text-blue-600 font-medium">Live</div>
+          </div>
+          <div className="text-2xl font-bold text-gray-900">
+            {stats.totalCuisines}
+          </div>
+          <div className="text-sm text-gray-600">Cuisines</div>
         </div>
 
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
           <div className="flex items-center justify-between mb-4">
             <Activity className="w-8 h-8 text-blue-600" />
-            <div className="text-xs text-blue-600 font-medium">+12</div>
+            <div className="text-xs text-blue-600 font-medium">Database</div>
           </div>
           <div className="text-2xl font-bold text-gray-900">
-            {stats.activeUsers}
+            {stats.totalIngredients}
           </div>
-          <div className="text-sm text-gray-600">Active Users</div>
+          <div className="text-sm text-gray-600">Ingredients</div>
         </div>
 
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
           <div className="flex items-center justify-between mb-4">
             <Zap className="w-8 h-8 text-blue-600" />
-            <div className="text-xs text-blue-600 font-medium">Optimal</div>
+            <div className="text-xs text-blue-600 font-medium">{dbStatus}</div>
           </div>
           <div className="text-2xl font-bold text-gray-900">
             {stats.systemHealth}%
           </div>
           <div className="text-sm text-gray-600">System Health</div>
-        </div>
-
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-          <div className="flex items-center justify-between mb-4">
-            <Database className="w-8 h-8 text-blue-600" />
-            <div className="text-xs text-blue-600 font-medium">+1K</div>
-          </div>
-          <div className="text-2xl font-bold text-gray-900">
-            {stats.dataProcessed.toLocaleString()}
-          </div>
-          <div className="text-sm text-gray-600">Data Processed</div>
         </div>
       </motion.div>
 

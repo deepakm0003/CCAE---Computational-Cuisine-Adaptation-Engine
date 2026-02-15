@@ -28,7 +28,14 @@ const CuisineSelector = ({ onPreview }: CuisineSelectorProps) => {
       const response = await ccaeApi.getCuisines();
       
       if (response && response.length > 0) {
-        setCuisines(response);
+        // Transform string array to Cuisine objects
+        const cuisineObjects = response.map((c: string | Cuisine) => {
+          if (typeof c === 'string') {
+            return { name: c };
+          }
+          return c;
+        });
+        setCuisines(cuisineObjects);
       } else {
         setError('No cuisines found. Upload data and compute identities first.');
       }
@@ -44,6 +51,19 @@ const CuisineSelector = ({ onPreview }: CuisineSelectorProps) => {
   useEffect(() => {
     fetchCuisines();
   }, []);
+
+  // Auto-select cuisine from localStorage if available
+  useEffect(() => {
+    if (cuisines.length > 0 && !selectedCuisine) {
+      const storedCuisine = localStorage.getItem('targetCuisine');
+      if (storedCuisine) {
+        const cuisine = cuisines.find(c => c.name.toLowerCase() === storedCuisine.toLowerCase());
+        if (cuisine) {
+          setSelectedCuisine(cuisine);
+        }
+      }
+    }
+  }, [cuisines, selectedCuisine]);
 
   const handleCuisineSelect = (cuisine: Cuisine) => {
     setSelectedCuisine(cuisine);
