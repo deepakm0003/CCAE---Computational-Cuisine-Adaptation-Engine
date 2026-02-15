@@ -44,7 +44,7 @@ export default function FlavorMapPage() {
       
       // Get identity data for each cuisine
       const cuisineIdentities = await Promise.all(
-        cuisines.map(async (cuisine: any) => {
+        cuisines.map(async (cuisine: any, index: number) => {
           try {
             // Handle both string and object formats from API
             const cuisineName = typeof cuisine === 'string' ? cuisine : cuisine.name;
@@ -53,10 +53,17 @@ export default function FlavorMapPage() {
               return null;
             }
             const identity = await ccaeApi.getCuisineIdentity(cuisineName);
+            
+            // Use deterministic grid positioning when embeddings not available
+            const gridCols = 5;
+            const gridSpacing = 20;
+            const defaultX = (index % gridCols) * gridSpacing + 10;
+            const defaultY = Math.floor(index / gridCols) * gridSpacing + 10;
+            
             return {
               name: cuisineName,
-              x: identity.embedding_2d?.[0] || Math.random() * 100,
-              y: identity.embedding_2d?.[1] || Math.random() * 100,
+              x: identity.embedding_2d?.[0] ?? defaultX,
+              y: identity.embedding_2d?.[1] ?? defaultY,
               size: Math.sqrt(identity.ingredient_count || 1) * 10,
               color: getCuisineColor(cuisineName),
               details: {

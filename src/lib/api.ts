@@ -47,7 +47,14 @@ api.interceptors.response.use(
   },
   (error) => {
     if (process.env.NODE_ENV === 'development') {
-      console.error(`❌ API Error: ${error.response?.status} ${error.config?.url}`, error.response?.data);
+      if (!error.response) {
+        console.error(`❌ Network Error: ${error.message || 'Failed to connect to server'}`, {
+          url: error.config?.url,
+          code: error.code
+        });
+      } else {
+        console.error(`❌ API Error: ${error.response?.status} ${error.config?.url}`, error.response?.data);
+      }
     }
     return Promise.reject(error);
   }
@@ -259,15 +266,117 @@ export const getFormulas = async (): Promise<any> => {
 
 // Error handling utility
 export const handleApiError = (error: any): string => {
+  // Network error (no response from server)
+  if (!error.response) {
+    if (error.code === 'ERR_NETWORK' || error.message.includes('Network Error')) {
+      return 'Cannot connect to server. Please ensure the backend is running on http://localhost:8000';
+    }
+    if (error.code === 'ECONNREFUSED') {
+      return 'Connection refused. Backend server may not be running.';
+    }
+    return error.message || 'Network error occurred';
+  }
+  
+  // Server returned an error response
   if (error.response?.data?.detail) {
     return error.response.data.detail;
   } else if (error.response?.data?.message) {
     return error.response.data.message;
+  } else if (error.response?.status) {
+    return `Server error: ${error.response.status} ${error.response.statusText || ''}`;
   } else if (error.message) {
     return error.message;
   } else {
     return 'An unexpected error occurred';
   }
+};
+
+// ==================== ADAPTATION TRACKING ====================
+// Track user adaptations in localStorage for dashboard stats
+
+interface AdaptationRecord {
+  id: string;
+  timestamp: string;
+  sourceCuisine: string;
+  targetCuisine: string;
+  recipeName: string;
+  identityScore: number;
+  compatibilityScore: number;
+}
+
+const ADAPTATIONS_STORAGE_KEY = 'ccae_adaptations';
+
+export const trackAdaptation = (adaptation: Omit<AdaptationRecord, 'id' | 'timestamp'>): void => {
+  try {
+    const record: AdaptationRecord = {
+      ...adaptation,
+      id: Date.now().toString(36) + Math.random().toString(36).substr(2),
+      timestamp: new Date().toISOString()
+    };
+    
+    const existing = localStorage.getItem(ADAPTATIONS_STORAGE_KEY);
+    const adaptations: AdaptationRecord[] = existing ? JSON.parse(existing) : [];
+    adaptations.unshift(record); // Add to beginning
+    
+    // Keep only last 100 adaptations
+    const trimmed = adaptations.slice(0, 100);
+    localStorage.setItem(ADAPTATIONS_STORAGE_KEY, JSON.stringify(trimmed));
+    
+    // Dispatch event for live updates
+    window.dispatchEvent(new CustomEvent('adaptation-completed', { detail: record }));
+  } catch (err) {
+    console.warn('Failed to track adaptation:', err);
+  }
+};
+
+export const getAdaptationHistory = (): AdaptationRecord[] => {
+  try {
+    const stored = localStorage.getItem(ADAPTATIONS_STORAGE_KEY);
+    return stored ? JSON.parse(stored) : [];
+  } catch {
+    return [];
+  }
+};
+
+export const getAdaptationStats = (): { 
+  total: number; 
+  today: number; 
+  thisWeek: number;
+  avgIdentityScore: number;
+  avgCompatibilityScore: number;
+  topTargetCuisine: string;
+} => {
+  const history = getAdaptationHistory();
+  const now = new Date();
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const weekStart = todayStart - 7 * 24 * 60 * 60 * 1000;
+  
+  const today = history.filter(a => new Date(a.timestamp).getTime() >= todayStart).length;
+  const thisWeek = history.filter(a => new Date(a.timestamp).getTime() >= weekStart).length;
+  
+  const avgIdentityScore = history.length > 0 
+    ? history.reduce((sum, a) => sum + (a.identityScore || 0), 0) / history.length 
+    : 0;
+  const avgCompatibilityScore = history.length > 0 
+    ? history.reduce((sum, a) => sum + (a.compatibilityScore || 0), 0) / history.length 
+    : 0;
+  
+  // Find most common target cuisine
+  const cuisineCounts: Record<string, number> = {};
+  history.forEach(a => {
+    cuisineCounts[a.targetCuisine] = (cuisineCounts[a.targetCuisine] || 0) + 1;
+  });
+  const topTargetCuisine = Object.entries(cuisineCounts)
+    .sort((a, b) => b[1] - a[1])[0]?.[0] || 'None';
+  
+  return { 
+    total: history.length, 
+    today, 
+    thisWeek, 
+    avgIdentityScore, 
+    avgCompatibilityScore,
+    topTargetCuisine 
+  };
 };
 
 // Consolidated API object for easier imports
@@ -299,6 +408,11 @@ const ccaeApi = {
   uploadRecipes,
   uploadMolecules,
   recomputeAll,
+  
+  // Tracking
+  trackAdaptation,
+  getAdaptationHistory,
+  getAdaptationStats,
 };
 
 export default ccaeApi;

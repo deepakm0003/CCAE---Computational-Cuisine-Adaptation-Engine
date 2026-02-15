@@ -4,12 +4,15 @@ import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
-import { CheckCircle, FileText, Download, ArrowLeft, BarChart3 } from 'lucide-react';
+import { CheckCircle, FileText, Download, ArrowLeft, BarChart3, AlertTriangle } from 'lucide-react';
+import { useDataUploadStore } from '@/store/dataUploadStore';
+import ccaeApi, { handleApiError } from '@/lib/api';
 
 export default function UploadSummaryPage() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
-  const [summary, setSummary] = useState<any>(null);
+  const { files, summary: uploadSummary } = useDataUploadStore();
+  const [dbStats, setDbStats] = useState<any>(null);
 
   useEffect(() => {
     if (isLoading) return;
@@ -19,21 +22,37 @@ export default function UploadSummaryPage() {
       return;
     }
 
-    // Mock summary data
-    setSummary({
-      totalFiles: 45,
-      successfulUploads: 42,
-      failedUploads: 3,
-      totalSize: '2.3 GB',
-      processingTime: '12 minutes',
-      files: [
-        { name: 'recipes_italian.csv', status: 'success', size: '45 MB', records: 1250 },
-        { name: 'molecules_japanese.json', status: 'success', size: '128 MB', records: 850 },
-        { name: 'recipes_mexican.csv', status: 'failed', size: '32 MB', error: 'Invalid format' },
-        { name: 'flavor_compounds.json', status: 'success', size: '256 MB', records: 2100 }
-      ]
-    });
+    // Fetch current database statistics
+    const fetchStats = async () => {
+      try {
+        const health = await ccaeApi.getHealth();
+        setDbStats({
+          totalRecipes: health.stats.recipes || 0,
+          totalCuisines: health.stats.cuisines || 0,
+          totalIngredients: health.stats.ingredients || 0
+        });
+      } catch (err) {
+        console.error('Failed to fetch stats:', err);
+      }
+    };
+    fetchStats();
   }, [user, isLoading, router]);
+
+  // Use real data from upload store
+  const summary = {
+    totalFiles: uploadSummary.totalFiles,
+    successfulUploads: uploadSummary.completedFiles,
+    failedUploads: uploadSummary.failedFiles,
+    totalSize: `${(uploadSummary.totalSize / (1024 * 1024)).toFixed(2)} MB`,
+    processingTime: 'Completed',
+    files: files.map(f => ({
+      name: f.name,
+      status: f.status === 'completed' ? 'success' : f.status === 'error' ? 'failed' : 'pending',
+      size: `${(f.size / (1024 * 1024)).toFixed(2)} MB`,
+      records: 'N/A',
+      error: f.error
+    }))
+  };
 
   if (isLoading) {
     return (

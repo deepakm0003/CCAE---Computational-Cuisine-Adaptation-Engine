@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Play, Settings, Eye, AlertTriangle, ChefHat, Globe, Zap, CheckCircle, RefreshCw } from 'lucide-react';
-import ccaeApi, { handleApiError } from '@/lib/api';
+import ccaeApi, { handleApiError, trackAdaptation } from '@/lib/api';
 import RecipeDropdown from '@/components/RecipeDropdown';
 import CuisineSelector from '@/components/CuisineSelector';
 import IntensitySlider from '@/components/IntensitySlider';
@@ -46,6 +46,15 @@ const AdaptPage = () => {
       
       // Store result in localStorage for result page
       localStorage.setItem('adaptationResult', JSON.stringify(response));
+      
+      // Track adaptation for dashboard stats
+      trackAdaptation({
+        sourceCuisine: response.source_cuisine || sourceCuisine || 'unknown',
+        targetCuisine: targetCuisine,
+        recipeName: response.recipe_name || 'Recipe',
+        identityScore: (response.scores?.identity_score || 0) * 100,
+        compatibilityScore: (response.scores?.compatibility_score || 0) * 100
+      });
       
       setSuccess('Recipe adaptation completed successfully!');
       

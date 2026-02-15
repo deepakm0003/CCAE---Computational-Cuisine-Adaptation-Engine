@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
+import ccaeApi, { handleApiError } from '@/lib/api';
 import { 
   GraduationCap, 
   BarChart3, 
@@ -21,11 +22,13 @@ export default function ResearcherDashboardPage() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
   const [stats, setStats] = useState({
-    papersPublished: 0,
-    experimentsRun: 0,
-    dataPoints: 0,
-    citations: 0
+    totalRecipes: 0,
+    totalCuisines: 0,
+    totalIngredients: 0,
+    experimentsRun: 0
   });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (isLoading) return;
@@ -35,43 +38,33 @@ export default function ResearcherDashboardPage() {
       return;
     }
 
-    setStats({
-      papersPublished: Math.floor(Math.random() * 10) + 3,
-      experimentsRun: Math.floor(Math.random() * 50) + 20,
-      dataPoints: Math.floor(Math.random() * 1000) + 500,
-      citations: Math.floor(Math.random() * 100) + 25
-    });
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const health = await ccaeApi.getHealth();
+        setStats({
+          totalRecipes: health.stats.recipes || 0,
+          totalCuisines: health.stats.cuisines || 0,
+          totalIngredients: health.stats.ingredients || 0,
+          experimentsRun: 0 // Will be tracked with research activity
+        });
+      } catch (err) {
+        console.error('Failed to fetch researcher data:', err);
+        setError(handleApiError(err));
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
   }, [user, isLoading, router]);
 
-  const researchProjects = [
-    { name: 'Cross-Cultural Flavor Transferability', status: 'active', progress: 78, participants: 156 },
-    { name: 'Structural Integrity Analysis', status: 'active', progress: 45, participants: 89 },
-    { name: 'Semantic Divergence Study', status: 'completed', progress: 100, participants: 234 },
-    { name: 'Cultural Distance Modeling', status: 'planned', progress: 15, participants: 0 }
-  ];
+  // Research projects - feature coming soon
+  const researchProjects: { name: string; status: string; progress: number; participants: number }[] = [];
 
-  const recentPapers = [
-    { 
-      title: 'Molecular Analysis of Cross-Cuisine Adaptation', 
-      journal: 'Food Chemistry', 
-      citations: 23,
-      date: '2 months ago'
-    },
-    { 
-      title: 'Machine Learning in Recipe Transformation', 
-      journal: 'Nature Food', 
-      citations: 45,
-      date: '4 months ago'
-    },
-    { 
-      title: 'Cultural Anthropology in Modern Cuisine', 
-      journal: 'Journal of Culinary Science', 
-      citations: 12,
-      date: '6 months ago'
-    }
-  ];
+  // Recent papers - feature coming soon
+  const recentPapers: { title: string; journal: string; citations: number; date: string }[] = [];
 
-  if (isLoading) {
+  if (isLoading || loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
@@ -115,42 +108,42 @@ export default function ResearcherDashboardPage() {
             <TrendingUp className="w-4 h-4 text-blue-600" />
           </div>
           <div className="text-2xl font-bold text-gray-900">
-            {stats.papersPublished}
+            {stats.totalRecipes}
           </div>
-          <div className="text-sm text-gray-600">Papers Published</div>
+          <div className="text-sm text-gray-600">Total Recipes</div>
         </div>
 
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
           <div className="flex items-center justify-between mb-4">
             <Brain className="w-8 h-8 text-blue-600" />
-            <div className="text-xs text-blue-600 font-medium">+12</div>
+            <div className="text-xs text-blue-600 font-medium">Live</div>
           </div>
           <div className="text-2xl font-bold text-gray-900">
-            {stats.experimentsRun}
+            {stats.totalCuisines}
           </div>
-          <div className="text-sm text-gray-600">Experiments Run</div>
+          <div className="text-sm text-gray-600">Cuisines</div>
         </div>
 
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
           <div className="flex items-center justify-between mb-4">
             <BarChart3 className="w-8 h-8 text-blue-600" />
-            <div className="text-xs text-blue-600 font-medium">+500</div>
+            <div className="text-xs text-blue-600 font-medium">Database</div>
           </div>
           <div className="text-2xl font-bold text-gray-900">
-            {stats.dataPoints.toLocaleString()}
+            {stats.totalIngredients.toLocaleString()}
           </div>
-          <div className="text-sm text-gray-600">Data Points</div>
+          <div className="text-sm text-gray-600">Ingredients</div>
         </div>
 
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
           <div className="flex items-center justify-between mb-4">
             <Award className="w-8 h-8 text-blue-600" />
-            <div className="text-xs text-blue-600 font-medium">+8</div>
+            <div className="text-xs text-blue-600 font-medium">Ready</div>
           </div>
           <div className="text-2xl font-bold text-gray-900">
-            {stats.citations}
+            {stats.experimentsRun}
           </div>
-          <div className="text-sm text-gray-600">Citations</div>
+          <div className="text-sm text-gray-600">Experiments</div>
         </div>
       </motion.div>
 

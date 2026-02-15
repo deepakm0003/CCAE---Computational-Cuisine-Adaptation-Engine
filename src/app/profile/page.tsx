@@ -24,12 +24,12 @@ export default function ProfilePage() {
       return;
     }
 
-    // Mock user stats
+    // User stats - will be populated when adaptation tracking is implemented
     setStats({
-      adaptations: Math.floor(Math.random() * 50) + 10,
-      recipesCreated: Math.floor(Math.random() * 20) + 5,
-      researchPapers: Math.floor(Math.random() * 10) + 2,
-      joinDate: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000).toLocaleDateString()
+      adaptations: 0,
+      recipesCreated: 0,
+      researchPapers: 0,
+      joinDate: new Date().toLocaleDateString()
     });
   }, [user, isLoading, router]);
 

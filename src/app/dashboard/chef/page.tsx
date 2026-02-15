@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
+import ccaeApi, { handleApiError, getAdaptationStats, getAdaptationHistory } from '@/lib/api';
 import { 
   ChefHat, 
   TrendingUp, 
@@ -21,11 +22,14 @@ export default function ChefDashboardPage() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
   const [stats, setStats] = useState({
-    recipesCreated: 0,
-    adaptationsCompleted: 0,
-    avgRating: 0,
-    timeSaved: 0
+    totalRecipes: 0,
+    totalCuisines: 0,
+    totalIngredients: 0,
+    adaptationsCompleted: 0
   });
+  const [recentRecipes, setRecentRecipes] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (isLoading) return;
@@ -35,22 +39,47 @@ export default function ChefDashboardPage() {
       return;
     }
 
-    setStats({
-      recipesCreated: Math.floor(Math.random() * 20) + 5,
-      adaptationsCompleted: Math.floor(Math.random() * 50) + 20,
-      avgRating: (Math.random() * 2 + 3).toFixed(1),
-      timeSaved: Math.floor(Math.random() * 10) + 5
-    });
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        // Get real stats from API
+        const health = await ccaeApi.getHealth();
+        const adaptationStats = getAdaptationStats();
+        
+        setStats({
+          totalRecipes: health.stats.recipes || 0,
+          totalCuisines: health.stats.cuisines || 0,
+          totalIngredients: health.stats.ingredients || 0,
+          adaptationsCompleted: adaptationStats.total
+        });
+
+        // Get recent recipes from API
+        const recipes = await ccaeApi.getRecipes();
+        const recentList = recipes.slice(0, 4).map((recipe: any) => ({
+          name: recipe.name,
+          cuisine: recipe.cuisine,
+          ingredients: recipe.ingredients?.length || 0
+        }));
+        setRecentRecipes(recentList);
+      } catch (err) {
+        console.error('Failed to fetch chef data:', err);
+        setError(handleApiError(err));
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+    
+    // Listen for adaptation completions to refresh stats
+    const handleAdaptationComplete = () => fetchData();
+    window.addEventListener('adaptation-completed', handleAdaptationComplete);
+    
+    return () => {
+      window.removeEventListener('adaptation-completed', handleAdaptationComplete);
+    };
   }, [user, isLoading, router]);
 
-  const recentRecipes = [
-    { name: 'Fusion Sushi Pizza', rating: 4.8, adaptations: 12, time: '2 hours ago' },
-    { name: 'Thai Tacos al Pastor', rating: 4.6, adaptations: 8, time: '1 day ago' },
-    { name: 'Indian-style Ramen', rating: 4.9, adaptations: 15, time: '2 days ago' },
-    { name: 'Mexican Birria Ramen', rating: 4.7, adaptations: 10, time: '3 days ago' }
-  ];
-
-  if (isLoading) {
+  if (isLoading || loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
@@ -64,6 +93,13 @@ export default function ChefDashboardPage() {
 
   return (
     <div className="space-y-8">
+      {/* Error Display */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-red-700">
+          {error}
+        </div>
+      )}
+
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 30 }}
@@ -94,42 +130,42 @@ export default function ChefDashboardPage() {
             <TrendingUp className="w-4 h-4 text-blue-600" />
           </div>
           <div className="text-2xl font-bold text-gray-900">
-            {stats.recipesCreated}
+            {stats.totalRecipes}
           </div>
-          <div className="text-sm text-gray-600">Recipes Created</div>
+          <div className="text-sm text-gray-600">Total Recipes</div>
+        </div>
+
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+          <div className="flex items-center justify-between mb-4">
+            <Target className="w-8 h-8 text-blue-600" />
+            <div className="text-xs text-blue-600 font-medium">Live</div>
+          </div>
+          <div className="text-2xl font-bold text-gray-900">
+            {stats.totalCuisines}
+          </div>
+          <div className="text-sm text-gray-600">Cuisines</div>
         </div>
 
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
           <div className="flex items-center justify-between mb-4">
             <Zap className="w-8 h-8 text-blue-600" />
-            <div className="text-xs text-blue-600 font-medium">+8</div>
+            <div className="text-xs text-blue-600 font-medium">Database</div>
           </div>
           <div className="text-2xl font-bold text-gray-900">
-            {stats.adaptationsCompleted}
+            {stats.totalIngredients}
           </div>
-          <div className="text-sm text-gray-600">Adaptations</div>
+          <div className="text-sm text-gray-600">Ingredients</div>
         </div>
 
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
           <div className="flex items-center justify-between mb-4">
             <Star className="w-8 h-8 text-blue-600" />
-            <div className="text-xs text-blue-600 font-medium">+0.2</div>
+            <div className="text-xs text-blue-600 font-medium">Ready</div>
           </div>
           <div className="text-2xl font-bold text-gray-900">
-            {stats.avgRating}
+            {stats.adaptationsCompleted}
           </div>
-          <div className="text-sm text-gray-600">Avg Rating</div>
-        </div>
-
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-          <div className="flex items-center justify-between mb-4">
-            <Clock className="w-8 h-8 text-blue-600" />
-            <div className="text-xs text-blue-600 font-medium">-2h</div>
-          </div>
-          <div className="text-2xl font-bold text-gray-900">
-            {stats.timeSaved}h
-          </div>
-          <div className="text-sm text-gray-600">Time Saved</div>
+          <div className="text-sm text-gray-600">Adaptations</div>
         </div>
       </motion.div>
 
@@ -202,30 +238,39 @@ export default function ChefDashboardPage() {
         transition={{ delay: 0.6 }}
         className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6"
       >
-        <h2 className="text-xl font-semibold text-gray-900 mb-6">Recent Creations</h2>
+        <h2 className="text-xl font-semibold text-gray-900 mb-6">Recent Recipes from Database</h2>
         
         <div className="space-y-4">
-          {recentRecipes.map((recipe, index) => (
-            <div key={index} className="flex items-center gap-4 p-4 border border-gray-100 rounded-lg hover:bg-gray-50">
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-500 rounded-lg flex items-center justify-center">
-                <ChefHat className="w-6 h-6 text-white" />
-              </div>
-              <div className="flex-1">
-                <p className="font-medium text-gray-900">{recipe.name}</p>
-                <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">
-                  <div className="flex items-center gap-1">
-                    <Star className="w-4 h-4 text-blue-500" />
-                    {recipe.rating}
+          {recentRecipes.length > 0 ? (
+            recentRecipes.map((recipe, index) => (
+              <div key={index} className="flex items-center gap-4 p-4 border border-gray-100 rounded-lg hover:bg-gray-50">
+                <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-500 rounded-lg flex items-center justify-center">
+                  <ChefHat className="w-6 h-6 text-white" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium text-gray-900">{recipe.name}</p>
+                  <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">
+                    <div className="flex items-center gap-1">
+                      <Target className="w-4 h-4 text-blue-500" />
+                      {recipe.cuisine}
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Users className="w-4 h-4" />
+                      {recipe.ingredients} ingredients
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <Users className="w-4 h-4" />
-                    {recipe.adaptations} adaptations
-                  </div>
-                  <div>{recipe.time}</div>
                 </div>
               </div>
+            ))
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              <ChefHat className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+              <p>No recipes found. Upload some recipe data to get started!</p>
+              <a href="/data-upload" className="text-blue-600 hover:underline mt-2 inline-block">
+                Go to Data Upload
+              </a>
             </div>
-          ))}
+          )}
         </div>
       </motion.div>
     </div>
